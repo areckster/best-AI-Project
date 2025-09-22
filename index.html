@@ -1,0 +1,2253 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <!--
+    STEEL BLUE EDITION
+    - Brushed-steel, midnight-navy palette
+    - Glassy panels with metallic edge highlights
+    - Tight, pill-style controls & bubbles
+    - Preserves all functionality/IDs from your original
+  -->
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Chat — Steel Blue</title>
+
+  <!-- Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+
+  <!-- Highlight.js -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github-dark-dimmed.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/common.min.js"></script>
+
+  <!-- Markdown-it + plugins -->
+  <script src="https://cdn.jsdelivr.net/npm/markdown-it@13.0.1/dist/markdown-it.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/markdown-it-footnote@3.0.3/dist/markdown-it-footnote.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/markdown-it-task-lists@2.1.1/dist/markdown-it-task-lists.min.js"></script>
+
+  <!-- KaTeX (optional) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+  <style>
+    /* ===========================
+       Steel Blue Theme Variables
+       =========================== */
+    :root{
+      /* Core palette (steel + deep navy) */
+      --bg:         #0a1018;
+      --bg-soft:    #0c1420;
+      --panel:      #0e1826;
+      --panel-2:    #0f1f2f;
+      --glass:      rgba(14, 22, 34, .55);
+
+      --text:       #e6edf6;
+      --muted:      #a9b9cc;
+      --border:     #1b2a3d;
+
+      /* Steel Blue accents */
+      --accent-1:   #9ec5ff;  /* light steel */
+      --accent-2:   #5c8fbf;  /* classic steel blue */
+      --accent-3:   #3f6f9e;  /* deep steel */
+      --accent-glow: rgba(72,130,180,.55);
+
+      --danger:     #f56b82;
+
+      /* Metal tones */
+      --steel-1:    #1a2737;
+      --steel-2:    #223349;
+      --steel-3:    #2d4662;
+      --steel-line: rgba(158,197,255,.08);
+
+      --mono: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+      --radius: 16px;
+      --radius-lg: 22px;
+      --shadow: 0 22px 50px rgba(0,0,0,.45);
+
+      --container: 980px;
+      --msg-max: 820px;
+      --sidebar-w: 280px;
+
+      --sp-1: 6px; --sp-2: 10px; --sp-3: 14px; --sp-4: 18px; --sp-5: 24px; --sp-6: 32px;
+
+      /* Subtle brushed grain */
+      --grain: repeating-linear-gradient(
+        90deg,
+        rgba(255,255,255,.035) 0px,
+        rgba(255,255,255,.035) 1px,
+        transparent 1px,
+        transparent 3px
+      );
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0}
+    body{
+      color:var(--text);
+      font:15.5px/1.65 Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      letter-spacing:.1px;
+      /* Base backdrop color under the fixed layer */
+      background: #0b131f;
+      min-height: 100vh;
+    }
+    /* Fixed background layer element */
+    .bg-fixed{position:fixed;inset:0;z-index:0;pointer-events:none;
+      background:
+        /* sheen sweep */
+        radial-gradient(1200px 1200px at 12% -8%, rgba(92,143,191,.18) 0%, transparent 60%),
+        radial-gradient(1400px 1000px at 100% 0%, rgba(63,111,158,.16) 0%, transparent 65%),
+        /* bottom cool lift */
+        radial-gradient(1000px 600px at 50% 110%, rgba(63,111,158,.10) 0%, transparent 70%),
+        /* brushed base */
+        var(--grain),
+        linear-gradient(180deg, var(--bg) 0%, #0b131f 100%);
+      will-change: transform; /* helps Safari paint stability */
+    }
+    /* Ensure app content sits above the fixed background */
+    .shell{position:relative; z-index:1}
+
+    /* ===========================
+       Shell + Header
+       =========================== */
+    .shell{display:grid;grid-template-rows:auto 1fr;min-height:100%}
+
+    header{
+      position:sticky;top:0;z-index:50;
+      display:grid;grid-template-columns:auto 1fr auto;align-items:center;
+      gap:12px;padding:12px 16px;border-bottom:1px solid rgba(143,170,209,.28);
+      background:
+        linear-gradient(180deg, rgba(10,14,22,.68), rgba(10,14,22,.42)),
+        radial-gradient(620px 140px at 50% 0%, rgba(158,197,255,.12), transparent 70%);
+      backdrop-filter:saturate(130%) blur(14px);
+      box-shadow: 0 1px 0 rgba(158,197,255,.04) inset, 0 18px 36px rgba(10,16,28,.24);
+    }
+    .brand{
+      display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.2px
+    }
+    .brand .dot{
+      width:14px;height:14px;
+      /* hex badge with steel gradient */
+      clip-path: polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0% 50%);
+      background:
+        linear-gradient(135deg, #a7ccff 0%, #5c8fbf 45%, #3f6f9e 100%);
+      box-shadow:
+        0 0 18px var(--accent-glow),
+        0 0 0 1px rgba(158,197,255,.25) inset,
+        0 0 0 1px rgba(12,20,32,.6);
+    }
+    .ctx{justify-self:center;font-size:12px;color:var(--muted)}
+    .right{display:flex;align-items:center;gap:10px}
+    .telemetry{font-size:12px;color:var(--muted);min-width:190px;text-align:right}
+
+    .iconbtn{
+      width:38px;height:38px;border-radius:12px;display:grid;place-items:center;
+      background:linear-gradient(180deg, #0d1726, #0f1c2e);
+      border:1px solid var(--border);color:var(--text);cursor:pointer;
+      position:relative;
+      transition:transform .14s ease, background .14s ease, border-color .14s ease, box-shadow .14s ease
+    }
+    .iconbtn::after{
+      content:'';position:absolute;inset:0;border-radius:12px;
+      box-shadow:0 0 0 1px rgba(158,197,255,.12) inset;
+      pointer-events:none;
+    }
+    .iconbtn:hover{
+      transform:translateY(-1px);
+      background:linear-gradient(180deg, #0f1c2e, #12243a);
+      border-color:#2a3b56;
+      box-shadow:0 6px 20px rgba(72,130,180,.18);
+    }
+    .iconbtn svg{width:18px;height:18px}
+
+    /* ===========================
+       Main + Chat
+       =========================== */
+    main{position:relative;display:flex;flex-direction:column;overflow:hidden}
+    .chat-wrap{
+      flex:1;display:flex;flex-direction:column;align-items:center;
+      overflow-y:auto;scroll-behavior:smooth;overscroll-behavior:contain;padding-bottom:160px;
+      /* Remove scroll-bound decorations to avoid visible background end; the fixed
+         body::before layer now handles ambient lighting */
+      background: transparent;
+    }
+    .chat{flex:1;max-width:var(--container);width:100%;display:flex;flex-direction:column;padding:18px 18px 0}
+    .list{display:flex;flex-direction:column;gap:16px}
+
+    /* ===========================
+       Welcome
+       =========================== */
+    .welcome{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;text-align:center;padding:24px}
+    .welcome .inner{
+      font-weight:800;letter-spacing:.2px;line-height:1.1;
+      font-size:clamp(28px, 6vw, 42px);opacity:.96;
+      background: linear-gradient(180deg, #e6edf6, #9ec5ff);
+      -webkit-background-clip:text;background-clip:text;color:transparent;
+      text-shadow: 0 2px 30px rgba(72,130,180,.18);
+    }
+    .welcome .sub{margin-top:10px;font-size:14px;color:var(--muted)}
+    .welcome.hidden{display:none}
+
+    /* ===========================
+       Bubbles
+       =========================== */
+    .bubble{display:grid;grid-template-columns:32px 1fr;gap:10px;align-items:flex-end}
+    .bubble.user{grid-template-columns:1fr 32px}
+    .bubble.user .avatar{order:2}
+    .bubble.user .msg{order:1;justify-self:end}
+
+    .avatar{
+      width:32px;height:32px;display:grid;place-items:center;border-radius:50%;
+      font-weight:700;font-size:12px;letter-spacing:.2px;color:#eaf4ff;
+      background:
+        linear-gradient(135deg, rgba(158,197,255,.28), rgba(63,111,158,.28));
+      border:1px solid #2a3a56; box-shadow:0 6px 18px rgba(0,0,0,.35);
+    }
+    .assistant .avatar{
+      background:linear-gradient(135deg, rgba(158,197,255,.35), rgba(92,143,191,.3));
+      border-color:#2d3f5c;
+    }
+
+    .msg{
+      max-width:var(--msg-max);position:relative;border-radius:18px;padding:0;overflow:hidden;
+      border:1px solid var(--border);
+      background:
+        linear-gradient(180deg, #0c1624, #101f33);
+      box-shadow:0 14px 34px rgba(0,0,0,.28), 0 0 0 1px rgba(158,197,255,.05) inset;
+      isolation:isolate;
+    }
+    /* Subtle metallic rim light */
+    .msg::before{
+      content:'';position:absolute;inset:0;border-radius:18px;pointer-events:none;
+      background:linear-gradient(180deg, rgba(158,197,255,.10), transparent 30%, transparent 70%, rgba(158,197,255,.06));
+      mix-blend-mode:screen;opacity:.7;
+    }
+
+    .msg.role-user{
+      background:linear-gradient(180deg, #0f1d31, #142840);
+      border:1px solid #2a3d59;
+      box-shadow:0 14px 34px rgba(0,0,0,.28), 0 0 0 1px rgba(158,197,255,.07) inset;
+    }
+    .msg.role-assistant{
+      background:linear-gradient(180deg, #0b1422, #0e1b2d);
+      border:1px solid #20324a;
+    }
+
+    .msg .meta{
+      display:flex;align-items:center;justify-content:space-between;gap:8px;
+      padding:10px 14px;font-size:12px;color:#cfdaeb;
+      background:
+        linear-gradient(180deg, #0f1a2b, #0d1726);
+      border-bottom:1px solid var(--steel-line)
+    }
+    .msg .meta .tag{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:6px 10px;border-radius:999px;border:1px solid var(--steel-line);
+      background:linear-gradient(180deg,#0e1827,#0f1c2e);font-size:11px
+    }
+
+    .msg .body{padding:16px 18px}
+    .msg .body{word-break:break-word;overflow-wrap:anywhere}
+    .msg .body p{margin:0 0 10px}
+    .msg .body h1,.msg .body h2,.msg .body h3{margin:12px 0 8px}
+    .msg .body ul,.msg .body ol{margin:8px 0 8px 18px}
+    .msg .body img{display:block;max-width:100%;height:auto;border-radius:12px;border:1px solid var(--steel-line)}
+    .msg .body code{white-space:pre-wrap;word-break:break-word}
+    .msg .body pre{overflow:auto;max-width:100%;background:#0c1420;border:1px solid var(--steel-line)}
+    .msg .body pre code{white-space:pre;font-family:var(--mono);font-size:13px}
+    .codewrap{position:relative}
+    .copy-btn{
+      position:absolute;top:8px;right:8px;font-size:12px;padding:6px 8px;border-radius:10px;cursor:pointer;
+      background:linear-gradient(180deg,#0f1b2d,#0f1e33);border:1px solid var(--steel-line);color:var(--text)
+    }
+
+    /* hover actions */
+    .bubble-actions{position:absolute;top:10px;right:10px;display:flex;gap:8px;opacity:0;transition:opacity .12s ease}
+    .msg:hover .bubble-actions{opacity:1}
+    .pill-btn{
+      border:1px solid var(--steel-line);background:linear-gradient(180deg,#0f1b2d,#0f1e33);color:var(--text);
+      border-radius:999px;padding:6px 10px;font-size:12px;cursor:pointer;
+      transition:background .12s ease,border-color .12s ease, box-shadow .12s ease
+    }
+    .pill-btn:hover{background:#13243a;border-color:#304569;box-shadow:0 8px 22px rgba(72,130,180,.15)}
+
+    /* Thinking pill + card */
+    .thinking-bar{display:flex;align-items:center;justify-content:flex-start;margin:10px 14px 0}
+    .think-pill{
+      position:relative;display:inline-flex;align-items:center;gap:8px;
+      border:1px solid var(--steel-line);
+      background:linear-gradient(180deg,#0f1b2d,#0f1e33);
+      color:var(--text);border-radius:999px;padding:6px 12px;font-size:12px;cursor:pointer;user-select:none;
+      overflow:hidden;flex-wrap:wrap;max-width:100%;min-width:0;box-shadow:0 6px 16px rgba(0,0,0,.18)
+    }
+    .think-dot{width:6px;height:6px;border-radius:50%;
+      background:radial-gradient(60% 120% at 30% 30%, var(--accent-1) 0%, var(--accent-2) 70%);
+      box-shadow:0 0 16px rgba(158,197,255,.35);animation:pulse 1.2s ease-in-out infinite}
+    @keyframes pulse{0%,100%{opacity:.6;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
+    .think-card{
+      position:fixed;left:50%;transform:translateX(-50%) scale(.98);
+      width:min(86%, var(--msg-max));max-height:52vh;overflow:auto;
+      background:rgba(14,18,28,.52);color:var(--text);border:1px solid var(--steel-line);
+      border-radius:var(--radius-lg);padding:16px 20px 18px;backdrop-filter:blur(14px);box-shadow:var(--shadow);display:none;z-index:200
+    }
+    .think-card.open{display:block;animation:think-pop .25s ease forwards}
+    .think-card.closing{display:block;animation:think-pop .22s ease reverse forwards}
+    @keyframes think-pop{0%{transform:translateX(-50%) scale(.9);opacity:0}60%{transform:translateX(-50%) scale(1.05);opacity:1}100%{transform:translateX(-50%) scale(1);opacity:1}}
+    .think-backdrop{position:fixed;inset:0;background:transparent;display:none;z-index:199}
+    .think-backdrop.open{display:block}
+    .think-head{
+      position:sticky;top:14px;z-index:1;display:flex;align-items:center;gap:12px;
+      width:fit-content;margin:0 auto 18px;padding:10px 18px;
+      background:linear-gradient(180deg, rgba(20,28,42,.88), rgba(16,24,38,.62));
+      border:1px solid rgba(158,197,255,.25);
+      border-radius:999px;box-shadow:0 20px 38px rgba(8,12,20,.28);
+    }
+    .think-head h2{margin:0;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+    .think-close{
+      border:none;border-radius:999px;padding:6px 14px;font-size:11px;
+      background:rgba(158,197,255,.12);color:var(--text);cursor:pointer;
+      letter-spacing:.08em;text-transform:uppercase;font-weight:600;
+      transition:background .15s ease, color .15s ease;
+    }
+    .think-close:hover{background:rgba(158,197,255,.2);color:#fff}
+    .think-counter{font-size:12px;color:var(--muted);margin-bottom:6px;text-align:center}
+    .summary-entry{border:1px dashed var(--steel-line);border-radius:10px;padding:8px 10px;background:#0e1726}
+    .summary-entry + .summary-entry{margin-top:6px}
+    .tool-entry{border:1px solid var(--steel-line);padding:10px 12px;border-radius:12px;background:#0f1b2d;font-size:13px}
+    .tool-entry.pending{opacity:.75;font-style:italic}
+    .tool-links{list-style:none;padding:0;margin:4px 0 0;display:flex;flex-wrap:wrap;gap:6px}
+    .tool-links a{display:inline-block}
+    .search-pill{display:inline-block;margin:0;padding:6px 10px;border:1px solid var(--steel-line);border-radius:999px;background:#0f1b2d;color:var(--text);text-decoration:none;font-size:12px}
+    .tool-code,.tool-output{background:#0c1420;border:1px solid var(--steel-line);border-radius:8px;padding:8px;overflow:auto;font-size:12px;white-space:pre-wrap;word-break:break-word}
+
+    /* ===========================
+       Composer
+       =========================== */
+    .composer{position:fixed;bottom:0;left:0;right:0;z-index:40;padding:18px 16px 26px;background:linear-gradient(180deg, transparent, rgba(10,12,18,.62) 60%, rgba(10,12,18,.9))}
+    .has-sidebar .composer{left:var(--sidebar-w)}
+    .drawer-open .composer{left:var(--sidebar-w)}
+    :root{--composer-max:42vh}
+    .dock{
+      max-width:var(--container);margin:0 auto;display:flex;align-items:stretch;gap:12px;
+      border:1px solid var(--steel-line);border-radius:var(--radius-lg);padding:12px;
+      background:var(--glass);backdrop-filter:blur(12px);box-shadow:var(--shadow);
+      position:relative;
+    }
+    /* faint metallic hairline across the top */
+    .dock::before{
+      content:'';position:absolute;left:10px;right:10px;top:8px;height:1px;
+      background: linear-gradient(90deg, transparent, rgba(158,197,255,.25), transparent);
+      pointer-events:none;
+    }
+
+    .dock .left{display:grid;grid-template-rows:auto 1fr;gap:8px;flex:1;min-width:0}
+    .attachments{display:flex;flex-wrap:nowrap;gap:6px;overflow:auto;max-height:64px;align-items:center}
+    .attach-pill{position:relative;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--steel-line);border-radius:999px;padding:5px 10px;background:#0f1b2d;font-size:12px}
+    .attach-pill.vision{background:linear-gradient(135deg, rgba(158,197,255,.15), rgba(92,143,191,.15));border-color:rgba(158,197,255,.45)}
+    .attach-remove{position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;cursor:pointer;
+      background:#0f1b2d;border:1px solid var(--steel-line);color:var(--text);opacity:0;transform:scale(.9);transition:opacity .12s ease, transform .12s ease}
+    .attach-pill:hover .attach-remove{opacity:1;transform:scale(1)}
+    .attach-remove:hover{background:#13243a;border-color:#2e4363}
+
+    /* Upload indicator */
+    .upload-indicator{display:inline-flex;align-items:center;gap:8px;border:1px dashed var(--steel-line);border-radius:999px;padding:5px 10px;background:#0f1b2d;font-size:12px;color:var(--muted)}
+    .spinner{width:14px;height:14px;border-radius:50%;border:2px solid rgba(158,197,255,.25);border-top-color:var(--accent-1);animation:spin .9s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .input-wrap{
+      position:relative;border:1px solid var(--steel-line);border-radius:14px;background:#0f1b2d;padding:2px;
+      display:flex;align-items:stretch;min-height:48px;max-height:var(--composer-max);overflow:auto
+    }
+    textarea#prompt{
+      width:100%;background:transparent;border:0;color:var(--text);resize:none;min-height:40px;
+      font:14px/1.6 Inter, system-ui; padding:10px;outline:none;overflow:hidden;overflow-x:hidden;word-break:break-word;overflow-wrap:anywhere;line-break:anywhere;
+    }
+    .controls{display:flex;align-items:center;gap:8px;align-self:flex-end}
+    .controls input[type="file"]{display:none}
+    .btn{
+      appearance:none;border:1px solid #2a3c58;padding:10px;border-radius:50%;cursor:pointer;width:44px;height:44px;
+      display:grid;place-items:center;background:linear-gradient(180deg,#0f1b2d,#0f1e33);position:relative;
+      transition:transform .12s ease, background .12s ease, box-shadow .12s ease, border-color .12s ease
+    }
+    .btn::after{
+      content:'';position:absolute;inset:0;border-radius:50%;
+      box-shadow:0 0 0 1px rgba(158,197,255,.12) inset;
+      pointer-events:none;
+    }
+    .btn:hover{transform:translateY(-1px);background:#13243a;border-color:#304569;box-shadow:0 10px 26px rgba(72,130,180,.18)}
+    .btn:disabled{opacity:.45;cursor:not-allowed;filter:grayscale(40%)}
+    .btn svg{width:18px;height:18px;stroke:var(--text)}
+
+    .btn.accent{
+      background:
+        radial-gradient(120% 120% at 30% 30%, var(--accent-1) 0%, var(--accent-2) 70%),
+        linear-gradient(180deg, #0f1b2d, #0f1e33);
+      color:#07121e;border-color:transparent;
+      box-shadow:0 10px 28px rgba(72,130,180,.25), 0 0 0 1px rgba(15,27,45,.6) inset;
+    }
+    .btn.accent svg{stroke:#061019}
+    .composer .pill-btn.reasoning-btn{
+      height:44px;display:inline-flex;align-items:center;gap:8px;padding:0 16px;font-size:13px;border-radius:999px;
+      background:#0f1b2d;color:var(--text);border:1px solid var(--steel-line);
+      transition:background .2s ease,border-color .2s ease,color .2s ease, box-shadow .2s ease;
+    }
+    .composer .pill-btn.reasoning-btn.active{
+      background:
+        radial-gradient(120% 120% at 30% 30%, var(--accent-1) 0%, var(--accent-2) 70%);
+      color:#061019;border-color:transparent;font-weight:600;
+      box-shadow:0 10px 26px rgba(72,130,180,.25);
+    }
+    .composer .pill-btn.reasoning-btn.off{background:#231a1a;border-color:#3d2f2f;color:#f9dada}
+
+    /* ===========================
+       Drawer (simplified)
+       =========================== */
+    .drawer-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .2s ease}
+    .drawer-backdrop.open{opacity:1;pointer-events:auto}
+    .drawer{
+      position:fixed;top:0;left:0;height:100%;width:var(--sidebar-w);transform:translateX(-100%);transition:transform .25s ease;
+      background:
+        linear-gradient(180deg,var(--panel),var(--bg-soft));
+      border-right:1px solid var(--steel-line);
+      padding:16px;overflow-y:auto;box-shadow:var(--shadow);z-index:60
+    }
+    .drawer.open{transform:translateX(0)}
+    body.has-sidebar .drawer{transform:translateX(0)}
+    body.has-sidebar .shell{margin-left:var(--sidebar-w); width: calc(100% - var(--sidebar-w));}
+    body.has-sidebar #drawerBackdrop{display:none}
+
+    /* Hide header metrics */
+    header .ctx, header .telemetry{display:none}
+    .section{border:1px solid var(--steel-line);border-radius:16px;padding:16px;margin-bottom:14px;background:#0d1726}
+    .section h3{margin:0 0 8px;font-size:13px;font-weight:700;text-transform:uppercase;color:var(--muted);letter-spacing:.08em}
+    label{font-size:12px;color:var(--muted);display:block;margin:8px 0 6px}
+    input[type="text"],input[type="number"],textarea,select{width:100%;background:#0c1420;color:var(--text);border:1px solid var(--steel-line);border-radius:10px;padding:10px 12px;outline:none}
+    .toggle{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;background:#0c1420;border:1px solid var(--steel-line);border-radius:10px}
+    /* Hover help for settings rows */
+    .toggle[data-help]{position:relative}
+    .toggle[data-help]:hover::after{
+      content: attr(data-help);
+      position:absolute;left:0;bottom:calc(100% + 8px);
+      background:rgba(14,18,28,.95);color:var(--text);
+      border:1px solid var(--steel-line);border-radius:10px;padding:10px 12px;
+      box-shadow:0 8px 24px rgba(0,0,0,.35);max-width:420px;min-width:220px;z-index:200;
+      line-height:1.4;font-size:12.5px
+    }
+    .toggle[data-help]:hover::before{
+      content:'';position:absolute;left:16px;bottom:100%;
+      border:6px solid transparent;border-top-color:rgba(14,18,28,.95);
+      filter:drop-shadow(0 -1px 0 var(--steel-line))
+    }
+    /* Generic help popover for any settings label with data-help */
+    label[data-help]{position:relative; display:inline-block}
+    label[data-help]:hover::after{
+      content: attr(data-help);
+      position:absolute;left:0;bottom:calc(100% + 8px);
+      background:rgba(14,18,28,.95);color:var(--text);
+      border:1px solid var(--steel-line);border-radius:10px;padding:10px 12px;
+      box-shadow:0 8px 24px rgba(0,0,0,.35);max-width:420px;min-width:220px;z-index:200;
+      line-height:1.4;font-size:12.5px
+    }
+    label[data-help]:hover::before{
+      content:'';position:absolute;left:16px;bottom:100%;
+      border:6px solid transparent;border-top-color:rgba(14,18,28,.95);
+      filter:drop-shadow(0 -1px 0 var(--steel-line))
+    }
+    .muted{color:var(--muted)}
+    .danger{color:#ffd0db}
+
+    /* Doc search input */
+    .docsearch{display:flex;align-items:center;gap:8px}
+    .docsearch input{width:220px;background:#0c1420;color:var(--text);border:1px solid var(--steel-line);border-radius:10px;padding:8px 10px;outline:none}
+
+    /* ===========================
+       Scrollbar
+       =========================== */
+    *::-webkit-scrollbar{height:10px;width:10px}
+    *::-webkit-scrollbar-thumb{background:#1c2b41;border-radius:999px;border:2px solid transparent;background-clip:content-box;box-shadow:0 0 0 1px rgba(158,197,255,.1) inset}
+    *::-webkit-scrollbar-track{background:transparent}
+
+    /* Sidebar footer */
+    .sidebar-footer{position:sticky;bottom:0;left:0;right:0;padding:12px;background:linear-gradient(180deg, rgba(10,14,22,0), rgba(10,14,22,.65) 40%, rgba(10,14,22,.85));backdrop-filter:blur(8px);border-top:1px solid var(--steel-line)}
+
+    /* Modal */
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:opacity .2s ease;z-index:140}
+    .modal-backdrop.open{opacity:1;pointer-events:auto}
+    .modal-window{position:fixed;inset:auto auto 50% 50%;transform:translate(-50%, 50%) scale(.98);width:min(720px, 92vw);max-height:74vh;overflow:auto;background:rgba(14,18,28,.65);border:1px solid var(--steel-line);border-radius:var(--radius-lg);box-shadow:var(--shadow);backdrop-filter:blur(14px);padding:16px;display:none;z-index:150}
+    .modal-window.open{display:block;animation:think-pop .22s ease forwards}
+    .modal-window.closing{display:block;animation:think-pop .2s ease reverse forwards}
+    .modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+
+    @media (max-width: 720px){
+      .chat{padding:14px}
+      .dock{margin:0 2px}
+      header{padding:10px 12px}
+      .telemetry{display:none}
+    }
+    @media (prefers-reduced-motion: reduce){
+      *{scroll-behavior:auto;transition:none !important}
+    }
+    /* Doc search modal list */
+    .doc-list{display:flex;flex-direction:column;gap:10px;margin:8px 0 6px}
+    .doc-item{border:1px solid var(--steel-line);border-radius:12px;padding:10px;background:#0f1b2d}
+    .doc-item .head{display:flex;gap:8px;align-items:center;justify-content:space-between}
+    .doc-item .title{font-weight:600}
+    .doc-item .meta{font-size:11.5px;color:var(--muted)}
+    .doc-open{margin-left:auto}
+    .doc-preview{margin-top:6px;font-size:13px;color:#d6e1f0}
+
+    /* Clamp long user messages */
+    .clamp-wrap{position:relative}
+    .clamp-fade{position:absolute;left:0;right:0;bottom:0;height:48px;background:linear-gradient(180deg, rgba(15,23,35,0), rgba(15,23,35,.95))}
+    .showmore{display:inline-block;margin-top:6px;color:var(--accent-1);cursor:pointer;font-weight:600;font-size:12.5px}
+  </style>
+</head>
+<body>
+  <div class="bg-fixed" aria-hidden="true"></div>
+  <div class="shell">
+    <header>
+      <div class="brand">
+        <button id="drawerBtn" class="iconbtn" title="Open menu" aria-label="Open menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+        <span class="dot" aria-hidden="true"></span> Chat
+      </div>
+
+      <div id="ctxHint" class="ctx">ctx: auto</div>
+
+      <div class="right">
+        <div id="telemetry" class="telemetry">tkn: —/— • — ms</div>
+        <div class="docsearch" title="Search your docs">
+          <input id="docSearchBox" type="text" placeholder="Search docs…"/>
+          <button id="docSearchBtn" class="iconbtn" aria-label="Search docs">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+          </button>
+        </div>
+        <button id="newChat" class="iconbtn" title="New chat" aria-label="New chat">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <!-- Welcome overlay -->
+      <div id="welcome" class="welcome">
+        <div>
+          <div id="welcomeText" class="inner">Forged in steel blue. Ready when you are.</div>
+          <div class="sub">Type a message, attach files or images, and hit Enter.</div>
+        </div>
+      </div>
+
+      <div id="chatWrap" class="chat-wrap" aria-live="polite" aria-label="Chat transcript">
+        <div class="chat">
+          <div id="docSearchResults" class="section" style="display:none"></div>
+          <div id="messages" class="list"></div>
+        </div>
+
+        <!-- Composer -->
+        <div class="composer">
+          <div class="dock">
+            <div class="left">
+              <div class="attachments" id="attachments"></div>
+              <div class="input-wrap">
+                <textarea id="prompt" placeholder="Ask anything…"></textarea>
+              </div>
+            </div>
+            <div class="controls">
+              <input id="fileInput" type="file" multiple />
+              <input id="imageInput" type="file" accept="image/png,image/jpeg,image/webp" />
+              <button id="fileBtn" type="button" class="btn" title="Attach file" aria-label="Attach file">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M21.44 11.05l-9.19 9.19a5 5 0 1 1-7.07-7.07l9.19-9.19a3 3 0 0 1 4.24 4.24l-9.19 9.19a1 1 0 0 1-1.41-1.41l8.13-8.13"/>
+                </svg>
+              </button>
+              <button id="imageBtn" type="button" class="btn" title="Attach image" aria-label="Attach image">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="3" y="5" width="18" height="14" rx="2" ry="2"/>
+                  <circle cx="8.5" cy="10.5" r="1.5"/>
+                  <path d="M21 15l-4.5-4.5a1 1 0 0 0-1.5.06L9 18"/>
+                </svg>
+              </button>
+              <button id="reasoningBtn" type="button" class="pill-btn reasoning-btn active" aria-pressed="true" title="Toggle thinking mode">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M12 3a6 6 0 0 0-6 6c0 1.83.81 3.47 2.09 4.58l-1.09 3.92 3.92-1.09A5.98 5.98 0 0 0 12 21a6 6 0 0 0 0-12"/>
+                  <path d="M9 9h6M9 13h3"/>
+                </svg>
+                <span>Thinking On</span>
+              </button>
+              <button id="sendBtn" type="button" class="btn accent" aria-label="Send" title="Send (Enter)">
+                <svg id="sendIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M22 2L11 13"/>
+                  <path d="M22 2l-7 20-4-9-9-4 20-7Z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Sidebar -->
+  <div id="drawerBackdrop" class="drawer-backdrop"></div>
+  <aside id="drawer" class="drawer" aria-label="Chat sidebar">
+    <div class="right" style="justify-content: space-between; margin-bottom: 12px;">
+      <strong>Conversations</strong>
+    </div>
+
+    <div class="section">
+      <h3>Current chat</h3>
+      <div class="right" style="flex-wrap:wrap; gap:8px;">
+        <button id="newChatSide" class="pill-btn" title="Start new chat">New</button>
+        <button id="exportChat" class="pill-btn" title="Export current chat">Export</button>
+        <button id="clearChat" class="pill-btn" title="Clear current chat">Clear</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Recent</h3>
+      <div id="chatSessions" class="muted" style="font-size: 13px;"></div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div id="health" class="muted" style="margin: 0 0 10px; font-size: 12px;">Checking backend…</div>
+      <div style="display:flex; gap:8px;">
+        <button id="pinSidebar" class="pill-btn" style="flex:0 0 auto" title="Pin/unpin sidebar">Pin</button>
+        <button id="openSettings" class="pill-btn" style="flex:1 1 auto">Settings</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Settings Modal -->
+  <div id="settingsBackdrop" class="modal-backdrop"></div>
+  <div id="settingsModal" class="modal-window" role="dialog" aria-modal="true" aria-label="Settings">
+    <div class="modal-head">
+      <strong>Settings</strong>
+      <button id="settingsClose" class="iconbtn" aria-label="Close settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M18 6 6 18M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    <div class="section">
+      <h3>Model</h3>
+      <label for="modelTag" data-help="Set the base chat model tag for thinking mode. Use /api/models to list local tags.">Model tag</label>
+      <input id="modelTag" type="text" value="qwen3:4b-thinking-2507-q4_K_M" />
+      <div class="right" style="margin-top:8px;">
+        <button id="applyModel" class="pill-btn">Use</button>
+        <button id="refreshModels" class="pill-btn">Installed…</button>
+      </div>
+      <div id="modelsList" class="muted" style="margin-top:8px; font-size: 12px;"></div>
+    </div>
+    <div class="section">
+      <h3>Conversation</h3>
+      <div class="toggle" data-help="Automatically estimates the context window size from recent tokens, up to the Max Context bound."><span>Dynamic Context</span><input id="dynamicCtx" type="checkbox" checked /></div>
+      <label for="maxCtx" data-help="Upper bound for dynamic context. Larger allows longer histories but increases memory/time.">Max Context (tokens)</label>
+      <input id="maxCtx" type="number" value="40000" min="4096" step="1024"/>
+      <label for="numCtx" data-help="Context window to use when Dynamic Context is off.">Static Context (if dynamic off)</label>
+      <input id="numCtx" type="number" value="8192" min="2048" step="1024"/>
+      <label for="systemPrompt" data-help="Optional system policy injected atop the conversation.">System Prompt (optional)</label>
+      <textarea id="systemPrompt" placeholder="Optional system prompt…"></textarea>
+    </div>
+    <div class="section">
+      <h3>Retrieval</h3>
+      <div class="toggle" data-help="After each assistant reply, run a quick semantic search on your ingested pages using the last user query and display a 'Doc Sources' panel under the answer. This does not change the model's text."><span>Inline Doc Sources</span><input id="inlineDocHits" type="checkbox" /></div>
+      <div class="toggle" data-help="Reorder the top retrieved results with a small model before display and tool use. Improves relevance slightly at the cost of a bit more latency."><span>Re-rank with summarizer</span><input id="rerankDocResults" type="checkbox" /></div>
+    </div>
+    <details class="section">
+      <summary><h3 style="display:inline">Advanced</h3></summary>
+      <label for="temperature" data-help="Higher = more creative and variable. Lower = more deterministic.">Temperature</label>
+      <input id="temperature" type="number" value="0.9" min="0" max="2" step="0.05"/>
+      <label for="topP" data-help="Nucleus sampling. Consider tokens up to cumulative probability p.">top_p</label>
+      <input id="topP" type="number" value="0.9" min="0" max="1" step="0.01"/>
+      <label for="topK" data-help="Sample from the top K most likely tokens each step.">top_k</label>
+      <input id="topK" type="number" value="100" min="0" step="1"/>
+      <label for="numPredict" data-help="Upper bound on tokens the model may generate for a single response.">Max Output Tokens (num_predict)</label>
+      <input id="numPredict" type="number" value="" placeholder="leave blank for default"/>
+      <label for="seed" data-help="Set to a number for repeatable outputs. Leave blank for random.">Seed (optional)</label>
+      <input id="seed" type="number" value="" placeholder="random each run"/>
+    </details>
+  </div>
+
+  <!-- Doc Search Modal (uses thinking animation) -->
+  <div id="docSearchBackdrop" class="think-backdrop"></div>
+  <div id="docSearchModal" class="think-card" role="dialog" aria-modal="true" aria-label="Search Docs" style="padding-top:8px;">
+    <div class="think-head">
+      <h2>Search Docs</h2>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button id="docSearchClose" class="pill-btn">Close</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;margin:10px 0 14px;">
+      <input id="docSearchBoxModal" type="text" placeholder="Search docs…" style="flex:1;background:#0c1420;color:var(--text);border:1px solid var(--steel-line);border-radius:10px;padding:8px 10px;outline:none"/>
+      <button id="docSearchBtnModal" class="pill-btn">Search</button>
+    </div>
+    <div id="docSearchList" class="doc-list"></div>
+  </div>
+
+  <!-- Markdown renderer -->
+  <script>
+    const md = window.markdownit({
+      html:false, linkify:true, breaks:true,
+      highlight: function (str, lang) {
+        try {
+          const html = hljs.highlightAuto(str, lang ? [lang] : undefined).value;
+          return '<div class="codewrap"><button class="copy-btn" data-copy>Copy</button><pre><code class="hljs">'+html+'</code></pre></div>';
+        } catch {
+          return '<div class="codewrap"><button class="copy-btn" data-copy>Copy</button><pre><code class="hljs">'+md.utils.escapeHtml(str)+'</code></pre></div>';
+        }
+      }
+    }).use(window.markdownitFootnote)
+      .use(window.markdownitTaskLists, {enabled:true, label:true, labelAfter:true});
+
+    function renderMarkdown(raw){
+      const escaped = raw.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      const html = md.render(escaped);
+      const container = document.createElement('div');
+      container.innerHTML = html;
+      try{
+        if (window.renderMathInElement) {
+          window.renderMathInElement(container, {
+            delimiters:[
+              {left:"$$",right:"$$",display:true},
+              {left:"$",right:"$",display:false}
+            ]
+          });
+        }
+      } catch {}
+      return container.innerHTML;
+    }
+  </script>
+
+  <!-- App -->
+  <script>
+    // —— Elements
+    const listEl = document.getElementById('messages');
+    const chatWrapEl = document.getElementById('chatWrap');
+    const composerEl = document.querySelector('.composer');
+
+    const promptEl = document.getElementById('prompt');
+    const sendBtn = document.getElementById('sendBtn');
+    const sendIcon = document.getElementById('sendIcon');
+
+    const ctxHint = document.getElementById('ctxHint');
+    const telemetryEl = document.getElementById('telemetry');
+
+    const drawer = document.getElementById('drawer');
+    const drawerBtn = document.getElementById('drawerBtn');
+    const drawerBackdrop = document.getElementById('drawerBackdrop');
+    const drawerClose = document.getElementById('drawerClose');
+    // Settings modal elements
+    const settingsModal = document.getElementById('settingsModal');
+    const settingsBackdrop = document.getElementById('settingsBackdrop');
+    const openSettingsBtn = document.getElementById('openSettings');
+    const settingsCloseBtn = document.getElementById('settingsClose');
+
+    const modelTagEl = document.getElementById('modelTag');
+    const applyModelBtn = document.getElementById('applyModel');
+    const refreshModelsBtn = document.getElementById('refreshModels');
+    const modelsListEl = document.getElementById('modelsList');
+
+    const dynamicCtxEl = document.getElementById('dynamicCtx');
+    const maxCtxEl = document.getElementById('maxCtx');
+    const numCtxEl = document.getElementById('numCtx');
+    const temperatureEl = document.getElementById('temperature');
+    const topPEl = document.getElementById('topP');
+    const topKEl = document.getElementById('topK');
+    const numPredictEl = document.getElementById('numPredict');
+    const seedEl = document.getElementById('seed');
+    const systemPromptEl = document.getElementById('systemPrompt');
+    const inlineDocHitsEl = document.getElementById('inlineDocHits');
+    const rerankDocResultsEl = document.getElementById('rerankDocResults');
+
+    const newChatBtn = document.getElementById('newChat');
+    const exportChatBtn = document.getElementById('exportChat');
+    const clearChatBtn = document.getElementById('clearChat');
+    const newChatSideBtn = document.getElementById('newChatSide');
+    const sessionsEl = document.getElementById('chatSessions');
+    const healthEl = document.getElementById('health');
+
+    const attachmentsEl = document.getElementById('attachments');
+    const fileInput = document.getElementById('fileInput');
+    const fileBtn = document.getElementById('fileBtn');
+    const imageInput = document.getElementById('imageInput');
+    const imageBtn = document.getElementById('imageBtn');
+    const reasoningBtn = document.getElementById('reasoningBtn');
+    const docSearchBox = document.getElementById('docSearchBox');
+    const docSearchBtn = document.getElementById('docSearchBtn');
+    const docSearchResults = document.getElementById('docSearchResults');
+
+    const welcomeEl = document.getElementById('welcome');
+    const welcomeTextEl = document.getElementById('welcomeText');
+
+    const REASONING_OFF_MODEL = 'gemma3:4b-it-qat';
+    let history = [];
+    let assistantSummariesHistory = [];
+    let controller = null;
+    let streaming = false;
+    let attachments = [];
+    let imageAttachment = null;
+    let reasoningEnabled = true;
+    let uploadInProgress = false;
+    let textModelTag = (modelTagEl.value || '').trim();
+    let activeModelTag = textModelTag || REASONING_OFF_MODEL;
+
+    // —— Telemetry
+    let startAt = 0;
+    let firstByteAt = 0;
+    let lastOutTokenEstimate = 0;
+
+    // —— Current assistant msg ctx
+    let msgCtx = null;
+
+    // —— Welcome variants
+    const WELCOME_VARIANTS = [
+      { weekday:"Forged in steel blue. Build something.", weekend:"Forged in steel blue. Ready." },
+      { weekday:"Cold steel. Warm brain.", weekend:"Weekend steel, easy mode." },
+      { weekday:"Sharpen the edge. Ship.", weekend:"Simple moves, clean cuts." },
+      { weekday:"Precision over noise.", weekend:"Minimal input, maximal output." },
+      { weekday:"Blueprints to builds.", weekend:"Reset. Refocus. Forge." },
+      { weekday:"Prototype → probe → polish.", weekend:"We iterate here." },
+      { weekday:"You call it—I’ll assist.", weekend:"Your move." },
+      { weekday:"One issue at a time.", weekend:"Focus mode on." }
+    ];
+    function pickWelcome(){
+      const now = new Date();
+      const hour = now.getHours();
+      const day = now.getDay(); // 0=Sun
+      const isFriSun = (day === 0) || (day >= 5);
+      const variant = WELCOME_VARIANTS[hour % WELCOME_VARIANTS.length];
+      welcomeTextEl.textContent = isFriSun ? variant.weekend : variant.weekday;
+    }
+    function hideWelcome(){ welcomeEl.classList.add('hidden'); }
+    function showWelcome(){ pickWelcome(); welcomeEl.classList.remove('hidden'); }
+    function initWelcome(){ if (history.length===0) showWelcome(); }
+
+    // —— Button state
+    function setButtonState(state){
+      if (state === 'pause') {
+        sendBtn.setAttribute('aria-label','Pause'); sendBtn.classList.add('accent');
+        sendIcon.setAttribute('viewBox','0 0 24 24'); sendIcon.innerHTML = '<rect x="6" y="5" width="4" height="14" rx="1.2"></rect><rect x="14" y="5" width="4" height="14" rx="1.2"></rect>';
+      } else {
+        sendBtn.setAttribute('aria-label','Send'); sendBtn.classList.add('accent');
+        sendIcon.setAttribute('viewBox','0 0 24 24'); sendIcon.innerHTML = '<path d="M22 2L11 13"></path><path d="M22 2l-7 20-4-9-9-4 20-7Z"></path>';
+      }
+    }
+
+    // —— Token estimate + ctx hint
+    function estimateTokens(s){ return Math.ceil((s || '').length / 4); }
+    function updateCtxHint(){
+      const settings = { dynamic_ctx: dynamicCtxEl.checked, max_ctx: parseInt(maxCtxEl.value || '40000', 10), num_ctx: parseInt(numCtxEl.value || '8192', 10) };
+      const joined = history.map(m => `${m.role}: ${m.content}`).join('\n');
+      const est = estimateTokens(joined);
+      const mtag = (activeModelTag || '').toLowerCase();
+      const isQwenOrGemma4b = mtag.includes('qwen3') || mtag.includes('gemma4b') || (mtag.includes('gemma3') && mtag.includes(':4b'));
+      const minBase = isQwenOrGemma4b ? 6000 : 4096;
+      const num_ctx = settings.dynamic_ctx ? Math.max(minBase, Math.min(settings.max_ctx, Math.floor(est * 1.2))) : settings.num_ctx;
+      ctxHint.textContent = `ctx: ${settings.dynamic_ctx ? 'auto' : num_ctx} (≈${num_ctx})`;
+    }
+    function updateTelemetry(inTokensOverride){
+      const lastUser = [...history].reverse().find(m => m.role === 'user');
+      const inTok = inTokensOverride ?? (lastUser ? estimateTokens(lastUser.content) : 0);
+      const latency = firstByteAt && startAt ? Math.max(0, Math.round(firstByteAt - startAt)) : '—';
+      let tps = '—';
+      if (firstByteAt && lastOutTokenEstimate) {
+        const elapsed = (performance.now() - firstByteAt) / 1000;
+        if (elapsed > 0) tps = (lastOutTokenEstimate / elapsed).toFixed(1);
+      }
+      telemetryEl.textContent = `tkn: ${inTok || '—'}/${lastOutTokenEstimate || '—'} • ${latency} ms • ${tps} tps`;
+    }
+
+    // —— Doc search (modal)
+    function escapeHtml(s){ return String(s).replace(/[&<>]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
+    function openDocSearch(){
+      if (!docSearchModal) return;
+      docSearchBackdrop?.classList.add('open');
+      docSearchModal.classList.remove('closing');
+      docSearchModal.classList.add('open');
+      setTimeout(()=>{ try{ docSearchBoxModal?.focus(); }catch{} }, 20);
+    }
+    function closeDocSearch(){
+      if (!docSearchModal) return;
+      docSearchBackdrop?.classList.remove('open');
+      docSearchModal.classList.add('closing');
+      setTimeout(()=>{ docSearchModal.classList.remove('open'); docSearchModal.classList.remove('closing'); }, 200);
+    }
+    function renderDocList(items){
+      if (!docSearchList) return;
+      docSearchList.innerHTML = '';
+      if (!items || !items.length){ docSearchList.innerHTML = '<div class="muted">No matches in your docs.</div>'; return; }
+      for (const it of items){
+        const div = document.createElement('div'); div.className='doc-item';
+        const head = document.createElement('div'); head.className='head';
+        const title = document.createElement('div'); title.className='title'; title.textContent = it.title || it.doc_id || 'result';
+        const meta = document.createElement('div'); meta.className='meta'; meta.textContent = `${it.source || 'doc'} • ${it.score ?? ''}`;
+        const open = document.createElement('button'); open.className='pill-btn doc-open'; open.textContent='Open';
+        open.addEventListener('click', () => { renderDocViewer(it); });
+        head.appendChild(title); head.appendChild(meta); head.appendChild(open); div.appendChild(head);
+        const prev = document.createElement('div'); prev.className='doc-preview'; prev.textContent = String(it.preview||'').slice(0, 500);
+        div.appendChild(prev);
+        docSearchList.appendChild(div);
+      }
+    }
+    function renderDocViewer(it){
+      if (!docSearchList) return;
+      const title = it.title || it.doc_id || 'Document';
+      const meta = `${it.source || 'doc'}${it.uri ? ' • ' + it.uri : ''}`;
+      const text = String(it.preview||'').slice(0, 3000);
+      const container = document.createElement('div');
+      container.innerHTML = `
+        <div class="doc-item">
+          <div class="head">
+            <div class="title">${escapeHtml(title)}</div>
+            <div class="meta">${escapeHtml(meta)}</div>
+            <div style="display:flex;gap:8px;align-items:center">
+              ${it.uri ? `<a class=\"pill-btn\" href=\"${it.uri}\" target=\"_blank\" rel=\"noopener\">Open externally</a>` : ''}
+              <button id=\"docBackBtn\" class=\"pill-btn\">Back</button>
+            </div>
+          </div>
+          <div class="doc-preview" style="max-height:48vh;overflow:auto;white-space:pre-wrap">${escapeHtml(text)}</div>
+        </div>`;
+      docSearchList.innerHTML = '';
+      docSearchList.appendChild(container);
+      const back = document.getElementById('docBackBtn');
+      if (back){ back.addEventListener('click', ()=>{ doDocSearch(docSearchBoxModal.value); }); }
+    }
+    async function doDocSearch(q){
+      const query = String(q||'').trim(); if (!query) return;
+      try{
+        const r = await fetch('/api/search', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({query, k: 8, rerank: (rerankDocResultsEl?.checked === true) }) });
+        if (!r.ok){ renderDocList([]); return; }
+        const j = await r.json();
+        renderDocList(Array.isArray(j.results) ? j.results : []);
+      }catch{ renderDocList([]); }
+    }
+    if (docSearchBtn){ docSearchBtn.addEventListener('click', ()=>{ openDocSearch(); doDocSearch(docSearchBox.value || docSearchBoxModal.value);}); }
+    if (docSearchBox){ docSearchBox.addEventListener('keydown', (e)=>{ if (e.key==='Enter'){ e.preventDefault(); openDocSearch(); doDocSearch(docSearchBox.value); } }); }
+    if (docSearchBtnModal){ docSearchBtnModal.addEventListener('click', ()=> doDocSearch(docSearchBoxModal.value)); }
+    if (docSearchBoxModal){ docSearchBoxModal.addEventListener('keydown', (e)=>{ if (e.key==='Enter'){ e.preventDefault(); doDocSearch(docSearchBoxModal.value); } }); }
+    if (docSearchClose){ docSearchClose.addEventListener('click', closeDocSearch); }
+    if (docSearchBackdrop){ docSearchBackdrop.addEventListener('click', closeDocSearch); }
+
+    // —— Backend health + models
+    async function checkHealth(){
+      try {
+        const r = await fetch('/api/health');
+        const j = await r.json();
+        if (j.model) activeModelTag = j.model;
+        healthEl.textContent = j.ok ? `Backend ✓  •  ${j.model}` : 'Backend unreachable';
+        healthEl.className = j.ok ? 'muted' : 'muted danger';
+      } catch {
+        healthEl.textContent = 'Backend unreachable';
+        healthEl.className = 'muted danger';
+      }
+    }
+    async function ensureModel(target){
+      const desired = (target || '').trim();
+      if (!desired || desired === activeModelTag) return;
+      try {
+        await fetch('/api/models/set', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({model: desired})
+        });
+        activeModelTag = desired;
+        await checkHealth();
+      } catch (err) {
+        console.error('Failed to switch model', err);
+      }
+    }
+    async function applyModel(){
+      const model = modelTagEl.value.trim();
+      await fetch('/api/models/set', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({model}) });
+      if (model){ textModelTag = model; if (reasoningEnabled) activeModelTag = model; }
+      await checkHealth();
+    }
+    async function refreshModels(){
+      modelsListEl.textContent = 'Loading…';
+      try {
+        const r = await fetch('/api/models');
+        const j = await r.json();
+        if (j.models) {
+          modelsListEl.innerHTML = j.models.map(m => `<div>${m.name} <span class="muted">(${m.size})</span></div>`).join('') || '<span class="muted">No models found locally.</span>';
+        } else {
+          modelsListEl.innerHTML = '<span class="muted">No models field.</span>';
+        }
+      } catch {
+        modelsListEl.innerHTML = '<span class="muted">Failed to list models.</span>';
+      }
+    }
+    document.getElementById('applyModel').addEventListener('click', applyModel);
+    document.getElementById('refreshModels').addEventListener('click', refreshModels);
+
+    // —— Drawer (sidebar)
+    function openDrawer(){ drawer.classList.add('open'); drawerBackdrop.classList.add('open'); document.body.classList.add('drawer-open'); }
+    function closeDrawer(){ drawer.classList.remove('open'); drawerBackdrop.classList.remove('open'); document.body.classList.remove('drawer-open'); }
+    function toggleSidebar(){
+      if (window.innerWidth < 960){
+        if (drawer.classList.contains('open')) closeDrawer(); else openDrawer();
+      } else {
+        document.body.classList.toggle('has-sidebar');
+      }
+    }
+    drawerBtn.addEventListener('click', toggleSidebar);
+    drawerBackdrop.addEventListener('click', closeDrawer);
+    if (drawerClose) drawerClose.addEventListener('click', () => {
+      if (document.body.classList.contains('has-sidebar')){
+        document.body.classList.remove('has-sidebar');
+      } else {
+        closeDrawer();
+      }
+    });
+    window.addEventListener('resize', () => {
+      // auto-unpin on very small viewports
+      if (window.innerWidth < 960) document.body.classList.remove('has-sidebar');
+    });
+
+    // —— Settings modal (use think-pop animation, reverse on close)
+    function openSettings(){
+      if (!settingsModal) return; settingsModal.classList.remove('closing');
+      settingsBackdrop?.classList.add('open'); settingsModal.classList.add('open');
+    }
+    function closeSettings(){
+      if (!settingsModal) return; settingsModal.classList.add('closing');
+      settingsBackdrop?.classList.remove('open');
+      setTimeout(()=>{ settingsModal.classList.remove('open'); settingsModal.classList.remove('closing'); }, 200);
+    }
+    if (openSettingsBtn) openSettingsBtn.addEventListener('click', () => { openSettings(); });
+    const pinSidebarBtn = document.getElementById('pinSidebar');
+    if (pinSidebarBtn) pinSidebarBtn.addEventListener('click', () => {
+      document.body.classList.toggle('has-sidebar');
+    });
+    if (settingsCloseBtn) settingsCloseBtn.addEventListener('click', () => { closeSettings(); });
+    if (settingsBackdrop) settingsBackdrop.addEventListener('click', () => { closeSettings(); });
+    window.addEventListener('keydown', (e) => { if (e.key === 'Escape'){ closeSettings(); closeDrawer(); closeDocSearch(); } });
+
+    // —— Autosize + bottom padding
+    function updateChatWrapPadding(){
+      const h = composerEl ? composerEl.offsetHeight : 0;
+      if (chatWrapEl) chatWrapEl.style.paddingBottom = (h + 20) + 'px';
+    }
+    function autosize(){
+      const maxPx = Math.floor(window.innerHeight * 0.42);
+      promptEl.style.height='auto';
+      const next = Math.min(promptEl.scrollHeight, Math.max(120, maxPx));
+      promptEl.style.height = next + 'px';
+      updateChatWrapPadding();
+    }
+    promptEl.addEventListener('input', autosize);
+    window.addEventListener('load', () => { autosize(); updateChatWrapPadding(); });
+    window.addEventListener('resize', updateChatWrapPadding, {passive:true});
+
+    // —— Copy in code blocks
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-copy]');
+      if (!btn) return;
+      const pre = btn.parentElement.querySelector('pre');
+      const text = pre ? pre.innerText : '';
+      navigator.clipboard.writeText(text).then(() => {
+        const old = btn.textContent; btn.textContent = 'Copied'; setTimeout(()=>btn.textContent = old, 1200);
+      });
+    });
+
+    // —— Thinking toggle (disables image uploads when on)
+    function updateReasoningButton(){
+      reasoningBtn.classList.toggle('active', reasoningEnabled);
+      reasoningBtn.classList.toggle('off', !reasoningEnabled);
+      reasoningBtn.setAttribute('aria-pressed', reasoningEnabled ? 'true' : 'false');
+      const label = reasoningBtn.querySelector('span');
+      if (label) label.textContent = reasoningEnabled ? 'Thinking On' : 'Thinking Off';
+
+      const visionDisabled = reasoningEnabled === true;
+      imageBtn.disabled = visionDisabled;
+      imageBtn.setAttribute('aria-disabled', visionDisabled ? 'true' : 'false');
+      imageBtn.title = visionDisabled ? 'Disable thinking to attach images' : 'Attach image';
+
+      if (visionDisabled && imageAttachment){
+        revokeImagePreview(); imageAttachment = null; renderAttachments();
+      }
+    }
+    reasoningBtn.addEventListener('click', async () => {
+      reasoningEnabled = !reasoningEnabled;
+      if (!reasoningEnabled){
+        if (modelTagEl.value.trim()) textModelTag = modelTagEl.value.trim();
+        modelTagEl.value = REASONING_OFF_MODEL;
+        await ensureModel(REASONING_OFF_MODEL);
+      } else {
+        modelTagEl.value = textModelTag || modelTagEl.value;
+        await ensureModel(textModelTag || activeModelTag);
+      }
+      updateReasoningButton();
+    });
+    updateReasoningButton();
+    // —— Retrieval settings persistence
+    try{
+      inlineDocHitsEl.checked = (localStorage.getItem('inlineDocHits') === '1');
+      rerankDocResultsEl.checked = (localStorage.getItem('rerankDocResults') === '1');
+    }catch{}
+    inlineDocHitsEl?.addEventListener('change', ()=>{
+      try{ localStorage.setItem('inlineDocHits', inlineDocHitsEl.checked ? '1' : '0'); }catch{}
+    });
+    rerankDocResultsEl?.addEventListener('change', ()=>{
+      try{ localStorage.setItem('rerankDocResults', rerankDocResultsEl.checked ? '1' : '0'); }catch{}
+    });
+
+    // —— Attachments
+    function renderAttachments(){
+      attachmentsEl.innerHTML = '';
+      attachments.forEach((att, idx) => {
+        const pill = document.createElement('span'); pill.className = 'attach-pill'; pill.textContent = att.name;
+        const x = document.createElement('button'); x.type='button'; x.className='attach-remove'; x.title='Remove'; x.textContent='×';
+        x.addEventListener('click', (e)=>{ e.stopPropagation(); removeAttachment(idx); });
+        pill.appendChild(x);
+        attachmentsEl.appendChild(pill);
+      });
+      if (imageAttachment){
+        const pill = document.createElement('span'); pill.className = 'attach-pill vision'; pill.textContent = `Vision: ${imageAttachment.name}`;
+        const x = document.createElement('button'); x.type='button'; x.className='attach-remove'; x.title='Remove'; x.textContent='×';
+        x.addEventListener('click', (e)=>{ e.stopPropagation(); removeImageAttachment(); });
+        pill.appendChild(x);
+        attachmentsEl.appendChild(pill);
+      }
+      if (uploadInProgress){
+        const ind = document.createElement('span'); ind.className='upload-indicator';
+        const s = document.createElement('span'); s.className='spinner'; ind.appendChild(s);
+        const t = document.createElement('span'); t.textContent = 'Uploading…'; ind.appendChild(t);
+        attachmentsEl.appendChild(ind);
+      }
+      imageBtn.classList.toggle('selected', Boolean(imageAttachment));
+      updateChatWrapPadding();
+    }
+    function revokeImagePreview(){
+      if (imageAttachment?.preview){
+        URL.revokeObjectURL(imageAttachment.preview);
+      }
+    }
+    function setImageAttachment(file){
+      if (!file) return;
+      const allowed = ['image/png', 'image/jpeg', 'image/webp'];
+      if (!allowed.includes(file.type)){ alert('Images must be PNG, JPG, or WEBP.'); return; }
+      if (file.size > 8 * 1024 * 1024){ alert('Images must be 8MB or smaller.'); return; }
+      revokeImagePreview();
+      imageAttachment = { name:file.name, type:file.type, file, preview:URL.createObjectURL(file) };
+      renderAttachments();
+    }
+    function removeAttachment(i){
+      if (i < 0 || i >= attachments.length) return;
+      attachments.splice(i,1);
+      renderAttachments();
+    }
+    function removeImageAttachment(){
+      revokeImagePreview(); imageAttachment = null; renderAttachments();
+    }
+    async function handleFiles(fileList){
+      for (const file of fileList) {
+        if (!file) continue;
+        if (file.type.startsWith('image/')){
+          if (reasoningEnabled){ alert('Disable thinking to attach images.'); continue; }
+          setImageAttachment(file); continue;
+        }
+        if (file.type.startsWith('text/') || /\.(md|txt|csv|json|py|js|ts|html|css|java|swift|rs|cpp|c|cs|go|rb)$/i.test(file.name)) {
+          const text = await file.text();
+          attachments.push({name:file.name, type:'text', text, file});
+        } else {
+          attachments.push({name:file.name, type:'blob', file});
+        }
+      }
+      renderAttachments();
+    }
+    window.addEventListener('paste', (e) => {
+      const items = e.clipboardData?.items || [];
+      const files = [];
+      for (const it of items){ if (it.kind === 'file') files.push(it.getAsFile()); }
+      if (files.length) handleFiles(files);
+    });
+    fileBtn.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', async () => { await handleFiles(fileInput.files); fileInput.value = ''; });
+    imageBtn.addEventListener('click', () => { if (!imageBtn.disabled) imageInput.click(); });
+    imageInput.addEventListener('change', () => { const [file] = imageInput.files || []; if (file) setImageAttachment(file); imageInput.value = ''; });
+    window.addEventListener('dragover', (e) => { e.preventDefault(); });
+    window.addEventListener('drop', async (e) => { e.preventDefault(); if (e.dataTransfer?.files?.length) await handleFiles(e.dataTransfer.files); });
+
+    // —— Welcome on fresh
+    function initUI(){ if (history.length===0) showWelcome(); }
+
+    // —— Sessions (localStorage)
+    const SESS_KEY = 'chat_sessions_v1';
+    let sessions = [];
+    try { sessions = JSON.parse(localStorage.getItem(SESS_KEY) || '[]'); } catch { sessions = []; }
+    function saveSessions(){ try { localStorage.setItem(SESS_KEY, JSON.stringify(sessions)); } catch {} }
+    function titleFromHistory(h){
+      const firstUser = (h || []).find(m => m.role === 'user');
+      const text = (firstUser?.content || '').replace(/\n+/g,' ').slice(0, 60).trim();
+      return text || 'Untitled chat';
+    }
+    function renderSessions(){
+      if (!sessionsEl) return;
+      if (!sessions || sessions.length === 0){ sessionsEl.innerHTML = '<span class="muted">No saved chats yet.</span>'; return; }
+      sessionsEl.innerHTML = '';
+      for (const s of sessions.slice().sort((a,b)=>b.ts-a.ts)){
+        const row = document.createElement('div'); row.style.display='flex'; row.style.alignItems='center'; row.style.justifyContent='space-between'; row.style.gap='8px'; row.style.padding='6px 0';
+        const btn = document.createElement('button'); btn.className='pill-btn'; btn.style.flex='1'; btn.textContent = s.title || 'Untitled chat';
+        btn.title = new Date(s.ts).toLocaleString();
+        btn.addEventListener('click', () => { loadSession(s.id); closeDrawer(); });
+        const del = document.createElement('button'); del.className='pill-btn'; del.textContent='×'; del.title='Delete';
+        del.addEventListener('click', (ev) => { ev.stopPropagation(); sessions = sessions.filter(x => x.id !== s.id); saveSessions(); renderSessions(); });
+        row.appendChild(btn); row.appendChild(del);
+        sessionsEl.appendChild(row);
+      }
+    }
+    function archiveCurrentChat(){
+      if (!history || history.length === 0) return;
+      const id = Date.now() + '-' + Math.random().toString(36).slice(2,7);
+      const title = titleFromHistory(history);
+      sessions.push({ id, ts: Date.now(), title, history: history.slice() });
+      saveSessions(); renderSessions();
+    }
+    function loadSession(id){
+      const s = sessions.find(x => x.id === id); if (!s) return;
+      history = (s.history || []).slice();
+      listEl.innerHTML = '';
+      for (const m of history){ addBubble(m.role, m.content); }
+      updateCtxHint(); updateTelemetry(); hideWelcome();
+    }
+    if (newChatSideBtn) newChatSideBtn.addEventListener('click', () => { newChatBtn.click(); });
+
+    // —— Bubble builder
+    function addBubble(role, content, meta=''){
+      const row = document.createElement('div'); row.className = 'bubble ' + (role === 'user' ? 'user' : 'assistant');
+      const avatar = document.createElement('div'); avatar.className = 'avatar'; avatar.textContent = role === 'user' ? 'U' : 'A';
+      const msg = document.createElement('div'); msg.className = 'msg ' + (role === 'user' ? 'role-user' : 'role-assistant');
+
+      const timeStr = new Date().toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
+      const metaText = meta || ((role === 'user' ? 'You' : 'Assistant') + ' • ' + timeStr);
+      if (metaText) {
+        const metaEl = document.createElement('div'); metaEl.className = 'meta';
+        const label = document.createElement('div'); label.textContent = metaText;
+        const tag = document.createElement('div'); tag.className='tag'; tag.textContent = role === 'user' ? 'user' : 'assistant';
+        metaEl.appendChild(label); metaEl.appendChild(tag); msg.appendChild(metaEl);
+      }
+
+      if (role !== 'user') {
+        const tbar = document.createElement('div'); tbar.className = 'thinking-bar';
+        msg.appendChild(tbar);
+      }
+
+      const body = document.createElement('div'); body.className = 'body';
+      body.innerHTML = renderMarkdown(content || ''); body.setAttribute('data-raw', content || ''); msg.appendChild(body);
+
+      // Clamp long USER messages with a Show more toggle
+      if (role === 'user'){
+        try{
+          const raw = String(content || '');
+          if (raw.length > 700){
+            const short = raw.slice(0, 520) + '…';
+            const wrap = document.createElement('div'); wrap.className='clamp-wrap';
+            wrap.innerHTML = renderMarkdown(short);
+            const fade = document.createElement('div'); fade.className='clamp-fade'; wrap.appendChild(fade);
+            const toggle = document.createElement('a'); toggle.href='#'; toggle.className='showmore'; toggle.textContent='Show more';
+            const orig = body.innerHTML;
+            body.innerHTML = '';
+            body.appendChild(wrap);
+            body.appendChild(toggle);
+            let expanded = false;
+            toggle.addEventListener('click', (e)=>{
+              e.preventDefault(); expanded = !expanded;
+              if (expanded){ body.innerHTML = orig; toggle.textContent='Show less'; body.appendChild(toggle); }
+              else { body.innerHTML = ''; const w = document.createElement('div'); w.className='clamp-wrap'; w.innerHTML = renderMarkdown(short); const f = document.createElement('div'); f.className='clamp-fade'; w.appendChild(f); body.appendChild(w); body.appendChild(toggle); toggle.textContent='Show more'; }
+            });
+          }
+        }catch{}
+      }
+
+      if (role !== 'user') {
+        const actions = document.createElement('div'); actions.className = 'bubble-actions';
+        const copyBtn = document.createElement('button'); copyBtn.className = 'pill-btn'; copyBtn.textContent = 'Copy';
+        copyBtn.addEventListener('click', () => {
+          navigator.clipboard.writeText(body.getAttribute('data-raw') || '');
+          const t = copyBtn.textContent; copyBtn.textContent='Copied'; setTimeout(()=>copyBtn.textContent=t, 1200);
+        });
+        actions.appendChild(copyBtn); msg.appendChild(actions);
+      }
+
+      row.appendChild(avatar); row.appendChild(msg); listEl.appendChild(row);
+      return {wrap:row, msg, body};
+    }
+
+    // —— Thinking UI (minimal, closed by default)
+    const TOOL_LABELS = {
+      reason: 'Thoughts…',
+      web_search: 'Searching…',
+      open_url: 'Fetching page…',
+      search_docs: 'Searching Docs…',
+      assistant: 'Assistant working…',
+      eval_expr: 'Evaluating…',
+      execute: 'Running code…',
+      read_file: 'Reading file…',
+      write_file: 'Writing file…',
+      terminal_open: 'Using terminal…',
+      terminal_run: 'Using terminal…',
+      terminal_terminate: 'Using terminal…',
+      notes_write: 'Updating notes…',
+      notes_list: 'Referring to notes…',
+      notes_read: 'Referring to notes…',
+      user_prefs_write: 'Updating preferences…',
+      user_prefs_list: 'Reading preferences…',
+      user_prefs_read: 'Reading preferences…',
+    };
+    function createThinkingUI(msgEl){
+      const tbar = msgEl.querySelector('.thinking-bar');
+      tbar.innerHTML = '';
+      const pill = document.createElement('div'); pill.className = 'think-pill';
+      const spinner = document.createElement('span'); spinner.className='think-dot'; spinner.setAttribute('aria-hidden','true');
+      const label = document.createElement('span'); label.textContent='Thoughts…';
+      pill.appendChild(spinner); pill.appendChild(label); tbar.appendChild(pill);
+
+      const backdrop = document.createElement('div'); backdrop.className = 'think-backdrop';
+      const panel = document.createElement('div'); panel.className='think-card';
+      const head = document.createElement('div'); head.className='think-head';
+      const heading = document.createElement('h2'); heading.textContent='Thoughts';
+      const close = document.createElement('button'); close.type='button'; close.className='think-close'; close.textContent='Close';
+      head.appendChild(heading); head.appendChild(close);
+      const counter = document.createElement('div'); counter.className='think-counter'; counter.textContent='steps: 0';
+      const log = document.createElement('div'); log.className='think-log';
+      const pre = document.createElement('pre'); pre.textContent='';
+      log.appendChild(pre); panel.appendChild(head); panel.appendChild(counter); panel.appendChild(log);
+      document.body.appendChild(backdrop); document.body.appendChild(panel);
+
+      function positionPanel(){
+        const composer = document.querySelector('.composer');
+        const r = composer ? composer.getBoundingClientRect() : {top:window.innerHeight};
+        const gap = 12;
+        const bottom = window.innerHeight - r.top + gap;
+        const maxHeight = Math.min(window.innerHeight * 0.52, r.top - gap);
+        panel.style.top = '';
+        panel.style.bottom = `${bottom}px`;
+        panel.style.maxHeight = `${maxHeight}px`;
+      }
+      positionPanel();
+
+      function togglePanel(){
+        if (panel.classList.contains('open')){
+          panel.classList.add('closing'); backdrop.classList.remove('open');
+          setTimeout(()=>{ panel.classList.remove('open'); panel.classList.remove('closing'); }, 200);
+        } else {
+          positionPanel(); panel.classList.remove('closing'); panel.classList.add('open'); backdrop.classList.add('open');
+        }
+      }
+      pill.addEventListener('click', togglePanel);
+      close.addEventListener('click', togglePanel);
+      backdrop.addEventListener('click', togglePanel);
+      window.addEventListener('keydown', (e)=>{ if (e.key==='Escape') { panel.classList.remove('open'); backdrop.classList.remove('open'); }});
+      window.addEventListener('resize', positionPanel);
+
+      const ctx = {
+        pill, label, spinner, panel, pre, counter, log,
+        placeholders: {},
+        start: performance.now(), stop: null,
+        inThink:false, sawThinkOpen:false, sawThinkClose:false, finished:false,
+        mode:'reason', searchTimer:null,
+        buffer:'', steps:0, summarizing:false, summaryTimer:null, totalThinkChars:0,
+        observations:[], summaries:[],
+        recentThink:'', lastSnapshotAt:0
+      };
+      try{ ctx.topic = getLastUserText().slice(0, 160); }catch{}
+      ctx.setMode = (m) => { ctx.mode = m; ctx.label.textContent = TOOL_LABELS[m] || TOOL_LABELS.reason; if (m === 'reason' && ctx.searchTimer){ clearTimeout(ctx.searchTimer); ctx.searchTimer=null; } };
+      return ctx;
+    }
+    function finishThinkingUI(ctx){
+      if (!ctx || ctx.finished) return;
+      const ms = (ctx.stop ?? performance.now()) - ctx.start;
+      if (ctx.spinner) ctx.spinner.remove();
+      ctx.pill.style.opacity = .9;
+      ctx.label.textContent = `Thoughts ready — ${formatDuration(ms)}`;
+      ctx.finished = true;
+    }
+    function formatDuration(ms){
+      const s = Math.round(ms/1000);
+      if (s < 60) return `${s} second${s===1?'':'s'}`;
+      const m = Math.floor(s/60), r = s % 60;
+      return r ? `${m} minute${m===1?'':'s'} ${r} second${r===1?'':'s'}` : `${m} minute${m===1?'':'s'}`;
+    }
+
+    // —— Thinking summaries
+    async function pushSummary(tctx, final=false){
+      if (!tctx || !tctx.buffer.trim()) return;
+      if (tctx.summarizing){ if (final) tctx.pendingFinal = true; return; }
+      const chunk = tctx.buffer; tctx.buffer=''; tctx.summarizing = true; tctx.pendingFinal = false;
+      tctx.recentThink = ((tctx.recentThink || '') + ' ' + chunk).slice(-2500);
+      try{
+        const obs = Array.isArray(tctx.observations) ? tctx.observations.slice(-6) : [];
+        const pages = Array.isArray(tctx.pages) ? tctx.pages.slice(-2) : [];
+        const prior = Array.isArray(tctx.summaries) ? tctx.summaries.slice(-3) : [];
+        const topic = tctx.topic || getLastUserText().slice(0, 160);
+        const payload = {text: chunk, observations: obs, pages, prior, topic};
+        const r = await fetch('/api/reason/summarize', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
+        if (!r.ok){ tctx.summaryFailures = (tctx.summaryFailures||0) + 1; if (tctx.summaryFailures >= 3){ tctx.disabledSummary = true; } return; }
+        let j={}; try{ j = await r.json(); }catch{}
+        const text = (j.summary || '').trim();
+        if (text && (tctx.summaries?.slice(-1)[0] !== text)){
+          const div = document.createElement('div'); div.className='summary-entry';
+          div.innerHTML = renderMarkdown(text);
+          tctx.log.appendChild(div);
+          tctx.steps += 1; tctx.counter.textContent = `steps: ${tctx.steps}`;
+          tctx.summaries = tctx.summaries || [];
+          tctx.summaries.push(text);
+          const m = text.match(/\*\*([^*]+)\*\*/);
+          if (m && m[1]) tctx.label.textContent = m[1].trim();
+        }
+        if (text){ tctx.summaryFailures = 0; }
+      }catch{ tctx.summaryFailures = (tctx.summaryFailures||0) + 1; if (tctx.summaryFailures >= 3){ tctx.disabledSummary = true; } }
+      finally{
+        tctx.summarizing = false;
+        if (tctx.pendingFinal){ tctx.pendingFinal = false; pushSummary(tctx, true); return; }
+        if (!final && tctx.buffer.length > 1600) pushSummary(tctx, false);
+      }
+    }
+
+    // —— Stream delta consumer
+    function consumeDelta(delta, tctx){
+      let i = 0, out = '';
+      while (i < delta.length){
+        if (!tctx.inThink){
+          const open = delta.indexOf('<think>', i);
+          const close = delta.indexOf('</think>', i);
+          if (open === -1 && close === -1){ out += delta.slice(i); break; }
+          if (open !== -1 && (close === -1 || open < close)){
+            out += delta.slice(i, open); tctx.inThink = true; tctx.sawThinkOpen = true; i = open + 7; continue;
+          }
+          if (close !== -1 && (open === -1 || close < open)){ i = close + 8; continue; }
+        } else {
+          const close = delta.indexOf('</think>', i);
+          if (close === -1){
+            const part = delta.slice(i);
+            tctx.buffer += part; tctx.totalThinkChars += part.length;
+            tctx.recentThink = ((tctx.recentThink || '') + ' ' + part).slice(-2500);
+            if (!tctx.summaryTimer){
+              tctx.summaryTimer = setTimeout(()=>{ tctx.summaryTimer=null; pushSummary(tctx,false); }, 700);
+            }
+            if (tctx.buffer.length > 140) pushSummary(tctx,false);
+            break;
+          } else {
+            const part = delta.slice(i, close);
+            tctx.buffer += part; tctx.totalThinkChars += part.length;
+            tctx.recentThink = ((tctx.recentThink || '') + ' ' + part).slice(-2500);
+            if (tctx.summaryTimer){ try{ clearTimeout(tctx.summaryTimer); }catch{} tctx.summaryTimer=null; }
+            pushSummary(tctx, true);
+            i = close + 8; tctx.inThink = false; tctx.sawThinkClose = true; continue;
+          }
+        }
+      }
+      return out;
+    }
+
+    function renderToolResult(tctx, tr){
+      if (!tctx || !tr) return;
+      const {id, name, args, output} = tr;
+      let section = id && tctx.placeholders[id];
+      if (!section){
+        section = document.createElement('div');
+        section.className = 'tool-entry';
+        tctx.log.appendChild(section);
+        const nextPre = document.createElement('pre'); tctx.log.appendChild(nextPre); tctx.pre = nextPre;
+      } else {
+        section.classList.remove('pending'); section.innerHTML = ''; delete tctx.placeholders[id];
+      }
+
+      if (name === 'web_search'){
+        const title = document.createElement('div');
+        const strong = document.createElement('strong'); strong.textContent = 'searched for';
+        const em = document.createElement('em'); em.textContent = args?.query || '';
+        title.appendChild(strong); title.appendChild(document.createTextNode(' ')); title.appendChild(em);
+        section.appendChild(title);
+        tctx.observations.push(`Searched: ${args?.query || ''}`);
+        try{
+          if (Array.isArray(output?.previews) && output.previews.length){
+            for (const pv of output.previews){
+              const pvBox = document.createElement('div'); pvBox.className = 'tool-output';
+              let host = pv.host || '';
+              if (!host){ try{ host = new URL(pv.url||'').hostname; }catch{} }
+              const head = host ? `Preview (${host})` : 'Preview';
+              const text = pv.summary || '';
+              pvBox.textContent = `${head}: ${text.slice(0, 320)}`;
+              section.appendChild(pvBox);
+            }
+          }
+        }catch{}
+        if (Array.isArray(output?.results)){
+          const list = document.createElement('div'); list.className = 'tool-links';
+          for (const r of output.results){
+            try{
+              const url = new URL(r.url);
+              const a = document.createElement('a');
+              a.href = r.url; a.target = '_blank'; a.textContent = url.hostname; a.className = 'search-pill';
+              list.appendChild(a);
+            }catch{}
+          }
+          section.appendChild(list);
+        }
+      } else if (name === 'open_url'){
+        const title = document.createElement('div');
+        const strong = document.createElement('strong'); strong.textContent = 'opened';
+        let host = ''; try{ host = new URL(args?.url || '').hostname; }catch{}
+        const em = document.createElement('em'); em.textContent = host;
+        title.appendChild(strong); title.appendChild(document.createTextNode(' ')); title.appendChild(em);
+        section.appendChild(title);
+        let notedOpen = false;
+        try{
+          const page = output?.page;
+          if (page && typeof page === 'object'){
+            const meta = [];
+            if (page.site_name) meta.push(page.site_name);
+            if (page.published) meta.push(page.published);
+            if (page.author) meta.push(page.author);
+            if (page.word_count) meta.push(`${page.word_count} words`);
+            if (page.reading_time_min) meta.push(`${page.reading_time_min} min read`);
+            if (meta.length){ const info = document.createElement('div'); info.className = 'tool-output'; info.textContent = meta.join(' • '); section.appendChild(info); }
+            const snippet = document.createElement('div'); snippet.className = 'tool-output';
+            const s = page.summary || page.text || '';
+            snippet.textContent = s.slice(0, 380);
+            section.appendChild(snippet);
+            try{
+              if (!Array.isArray(tctx.pages)) tctx.pages = [];
+              tctx.pages.push({ host: host || page.site_name || '', title: (page.title||'').slice(0,120), summary: (page.summary||'').slice(0,280) });
+            }catch{}
+            try{
+              const parts = [];
+              if (host) parts.push(host);
+              const pageTitle = (page.title || '').trim();
+              if (pageTitle) parts.push(pageTitle.slice(0,90));
+              if (parts.length){ tctx.observations.push(`Opened: ${parts.join(' — ')}`); notedOpen = true; }
+            }catch{}
+            try{
+              if (tctx.disabledSummary) return;
+              (async ()=>{
+                const pageText = String(page.summary || page.text || '').slice(0, 1500);
+                tctx.recentThink = ((tctx.recentThink || '') + ' ' + pageText).slice(-2500);
+                const pageTitle = (page.title || '').trim();
+                const obsTag = host ? `Opened: ${host}${pageTitle ? ` — ${pageTitle.slice(0,90)}` : ''}` : 'Opened: source';
+                const topic = tctx.topic || getLastUserText().slice(0, 160);
+                const payload = {
+                  text: pageText,
+                  observations: [obsTag],
+                  pages: [{ host: host || page.site_name || '', title: String(page.title||'').slice(0,120), summary: String(page.summary||page.text||'').slice(0,360) }],
+                  snapshot: true,
+                  topic
+                };
+                const r = await fetch('/api/reason/summarize', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+                if (r.ok){
+                  let j={}; try{ j = await r.json(); }catch{}
+                  const text = (j.summary || '').trim();
+                  if (text && (tctx.summaries?.slice(-1)[0] !== text)){
+                    const div = document.createElement('div'); div.className='summary-entry'; div.innerHTML = renderMarkdown(text);
+                    tctx.log.appendChild(div);
+                    tctx.steps += 1; tctx.counter.textContent = `steps: ${tctx.steps}`;
+                    tctx.summaries = tctx.summaries || []; tctx.summaries.push(text);
+                    const m = text.match(/\*\*([^*]+)\*\*/); if (m && m[1]) tctx.label.textContent = m[1].trim();
+                    tctx.summaryFailures = 0;
+                  }
+                }
+              })();
+            }catch{}
+          } else if (typeof output?.content === 'string'){
+            const snippet = document.createElement('div'); snippet.className = 'tool-output';
+            snippet.textContent = output.content.slice(0,200);
+            section.appendChild(snippet);
+          }
+          if (!notedOpen && host){ tctx.observations.push(`Opened: ${host}`); }
+        }catch{}
+      } else if (name === 'open_related_links'){
+        const title = document.createElement('div');
+        const strong = document.createElement('strong'); strong.textContent = 'related links';
+        title.appendChild(strong); section.appendChild(title);
+        try{
+          if (Array.isArray(output?.related)){
+            for (const it of output.related){
+              const box = document.createElement('div'); box.className = 'tool-output';
+              let host = it.host || '';
+              if (!host){ try{ host = new URL(it.url||'').hostname; }catch{} }
+              const head = it.title ? `${it.title} (${host})` : host;
+              const summ = (it.summary || '').slice(0, 320);
+              box.textContent = head + (summ ? ` — ${summ}` : '');
+              section.appendChild(box);
+            }
+          }
+        }catch{}
+      } else if (name === 'search_docs'){
+        const title = document.createElement('div');
+        const strong = document.createElement('strong'); strong.textContent = 'sources';
+        title.appendChild(strong); section.appendChild(title);
+        try{
+          const list = document.createElement('div');
+          if (Array.isArray(output?.results) && output.results.length){
+            const seen = new Set();
+            for (const r of output.results){
+              const key = `${r.doc_id||''}|${r.uri||''}|${r.title||''}`;
+              if (seen.has(key)) continue; seen.add(key);
+              const item = document.createElement('div'); item.className='tool-output';
+              const head = document.createElement('div');
+              const a = document.createElement('a'); a.href = r.uri || '#'; a.target = '_blank'; a.rel='noopener noreferrer'; a.textContent = (r.title || r.doc_id || 'result');
+              const small = document.createElement('span'); small.className='muted'; small.style.marginLeft='6px'; small.textContent = `• ${r.source || 'doc'} • ${String(r.score||'')}`;
+              if (typeof r.term_hits === 'number') small.textContent += ` • hits:${r.term_hits}`;
+              head.appendChild(a); head.appendChild(small);
+              const details = document.createElement('details');
+              const sum = document.createElement('summary'); sum.textContent = 'preview'; details.appendChild(sum);
+              const pv = document.createElement('div'); pv.textContent = (r.preview || '').slice(0, 500); details.appendChild(pv);
+              item.appendChild(head); item.appendChild(details);
+              list.appendChild(item);
+            }
+          } else {
+            const empty = document.createElement('div');
+            empty.className='tool-output';
+            empty.textContent = (output?.message || output?.reason || 'No relevant docs');
+            list.appendChild(empty);
+          }
+          section.appendChild(list);
+          try{ tctx.lastDocsResults = output; }catch{}
+        }catch{}
+      } else if (name === 'summarize_file'){
+        const title = document.createElement('div');
+        const strong = document.createElement('strong'); strong.textContent = 'file summary';
+        title.appendChild(strong); section.appendChild(title);
+        try{
+          const p = String(output?.path||'');
+          if (p){ const info = document.createElement('div'); info.className='tool-output'; info.textContent = p; section.appendChild(info); }
+          const summ = String(output?.summary||'');
+          if (summ){ const box = document.createElement('div'); box.className='tool-output'; box.textContent = summ.slice(0, 1200); section.appendChild(box); }
+        }catch{}
+      } else if (name === 'read_whole_file'){
+        const title = document.createElement('div');
+        const strong = document.createElement('strong'); strong.textContent = 'file content';
+        title.appendChild(strong); section.appendChild(title);
+        try{
+          const p = String(output?.path||'');
+          if (p){ const info = document.createElement('div'); info.className='tool-output'; info.textContent = p + (output?.truncated? ' • truncated':''); section.appendChild(info); }
+          const cont = String(output?.content||'');
+          if (cont){ const pre = document.createElement('pre'); pre.className='tool-output'; pre.textContent = cont.slice(0, 2000); section.appendChild(pre); }
+        }catch{}
+      } else if (name === 'assistant'){
+        const title = document.createElement('div');
+        const strong = document.createElement('strong'); strong.textContent = 'assistant result';
+        title.appendChild(strong); section.appendChild(title);
+        try{
+          const src = String(output?.source||'');
+          if (src){ const info = document.createElement('div'); info.className='tool-output'; info.textContent = `source: ${src}`; section.appendChild(info); try{ tctx.assistantSource = src; }catch{} }
+          const res = String(output?.result||'');
+          if (res){ const box = document.createElement('div'); box.className='tool-output'; box.textContent = res.slice(0, 1600); section.appendChild(box); }
+        }catch{}
+      } else if (name === 'eval_expr'){
+        const title = document.createElement('div');
+        const strong = document.createElement('strong'); strong.textContent = 'evaluated';
+        const em = document.createElement('em'); em.textContent = args?.expr || '';
+        title.appendChild(strong); title.appendChild(document.createTextNode(' ')); title.appendChild(em);
+        section.appendChild(title);
+        const res = document.createElement('div'); res.className = 'tool-output';
+        res.textContent = String(output?.result ?? '');
+        section.appendChild(res);
+        tctx.observations.push(`Evaluated: ${String(args?.expr||'').slice(0,50)}`);
+      } else if (name === 'execute'){
+        const title = document.createElement('div'); const strong = document.createElement('strong'); strong.textContent = 'ran code';
+        title.appendChild(strong); section.appendChild(title);
+        if (args?.code){
+          const pre = document.createElement('pre'); pre.className = 'tool-code';
+          pre.innerHTML = hljs.highlight(args.code, {language:'python'}).value;
+          section.appendChild(pre);
+        }
+        if (output){
+          const out = document.createElement('pre'); out.className = 'tool-output';
+          out.textContent = typeof output === 'string' ? output : (output.output || output.stdout || JSON.stringify(output));
+          section.appendChild(out);
+        }
+        tctx.observations.push('Executed code');
+      } else {
+        const title = document.createElement('div'); const strong = document.createElement('strong'); strong.textContent = name;
+        title.appendChild(strong); section.appendChild(title);
+        if (output && typeof output === 'object'){
+          for (const [k,v] of Object.entries(output)){
+            const div = document.createElement('div'); div.className = 'tool-output'; div.textContent = `${k}: ${String(v).slice(0,200)}`;
+            section.appendChild(div);
+          }
+        } else if (output){
+          const div = document.createElement('div'); div.className = 'tool-output'; div.textContent = String(output).slice(0,200);
+          section.appendChild(div);
+        }
+      }
+      try{
+        const now = performance.now();
+        if (!tctx.buffer || tctx.buffer.length < 1){
+          if (!tctx.lastSnapshotAt || (now - tctx.lastSnapshotAt) > 1500){
+            tctx.lastSnapshotAt = now;
+            if (!tctx.summarizing) {
+              setTimeout(()=>{ try{ pushSummarySnapshot(tctx); }catch{} }, 0);
+            }
+          }
+        }
+      }catch{}
+    }
+
+    function appendVisible(ctx, deltaVisible){
+      const bodyEl = ctx.body; if (!deltaVisible) return;
+      const currentRaw = bodyEl.getAttribute('data-raw') || '';
+      const nextRaw = currentRaw + deltaVisible;
+      bodyEl.setAttribute('data-raw', nextRaw);
+      bodyEl.innerHTML = renderMarkdown(nextRaw);
+      lastOutTokenEstimate = estimateTokens(nextRaw);
+      updateTelemetry();
+    }
+
+    function getLastUserText(){
+      for (let i = history.length - 1; i >= 0; i--){
+        if (history[i]?.role === 'user') return String(history[i].content||'');
+      }
+      return '';
+    }
+    async function finalizeFromReasoning(tctx){
+      try{
+        if (!tctx) return '';
+        const payload = {
+          question: getLastUserText(),
+          thinking: (tctx.recentThink || tctx.buffer || '').slice(-2400),
+          observations: Array.isArray(tctx.observations) ? tctx.observations.slice(-8) : [],
+          pages: Array.isArray(tctx.pages) ? tctx.pages.slice(-4) : [],
+          summaries: Array.isArray(tctx.summaries) ? tctx.summaries.slice(-4) : [],
+        };
+        const r = await fetch('/api/reason/finalize', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify(payload),
+        });
+        if (!r.ok) return '';
+        const j = await r.json();
+        const ans = (j.answer || '').trim();
+        return ans;
+      } catch {
+        return '';
+      }
+    }
+    async function attemptDocAutoAttach(tctx){
+      try{
+        if (!tctx || tctx.finished || tctx.docAutoAttached || tctx.sawSearchDocs) return;
+        // Only auto-attach doc hits when this turn included file uploads.
+        // Avoid polluting general web Q&A with stale or unrelated doc citations.
+        if (!tctx.hadFiles) return;
+        // Build a quick query from the last user text
+        const q = getLastUserText().slice(0, 400);
+        if (!q) return;
+        const body = { query: q, k: 5, rerank: (rerankDocResultsEl?.checked === true) };
+        if (tctx.hadFiles) body.filters = { source: 'file' };
+        const r = await fetch('/api/search', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+        if (!r.ok) return;
+        const j = await r.json();
+        if (!Array.isArray(j.results) || !j.results.length) return;
+        // Render sources inline in Thinking panel, as if a tool returned them
+        const event = { type: 'tool_result', id: 'auto-docs', name: 'search_docs', args: { query: q, auto: true }, output: j };
+        renderToolResult(tctx, event);
+        tctx.docAutoAttached = true;
+        tctx.autoDocsResults = j;
+        // Feed observations to improve summaries
+        try{
+          for (const it of j.results.slice(0,3)){
+            const host = it.host || it.source || '';
+            const title = String(it.title||'').slice(0, 90);
+            if (host || title){ tctx.observations.push(`Source: ${host}${title ? ' — ' + title : ''}`); }
+          }
+        }catch{}
+        // Update label to reflect status
+        try{ tctx.label.textContent = 'Searching Docs…'; }catch{}
+      }catch{}
+    }
+    function renderInlineSources(containerMsg, items){
+      if (!containerMsg || !items || !items.length) return;
+      // Deduplicate by doc_id or uri/title to avoid noisy repeats
+      const uniq = [];
+      const seen = new Set();
+      for (const it of items){
+        const key = it.doc_id || (it.uri ? (it.uri + '|' + (it.title||'')) : (it.title||''));
+        if (!key) continue;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        uniq.push(it);
+      }
+      if (!uniq.length) return;
+      const wrap = document.createElement('div'); wrap.className = 'section';
+      const h = document.createElement('h3'); h.textContent = 'Doc Sources'; wrap.appendChild(h);
+      for (const it of uniq){
+        const div = document.createElement('div'); div.className = 'tool-output';
+        const a = document.createElement('a'); a.href = it.uri || '#'; a.target = '_blank'; a.textContent = (it.title || it.doc_id || 'result');
+        const meta = document.createElement('span'); meta.className = 'muted'; meta.style.marginLeft = '6px'; meta.textContent = `• ${it.host || it.source || ''}${it.score? ' • '+it.score: ''}`;
+        const details = document.createElement('details'); const sum = document.createElement('summary'); sum.textContent = 'preview'; details.appendChild(sum);
+        const pv = document.createElement('div'); pv.textContent = String(it.preview || '').slice(0, 500); details.appendChild(pv);
+        div.appendChild(a); div.appendChild(meta); div.appendChild(details); wrap.appendChild(div);
+      }
+      containerMsg.appendChild(wrap);
+    }
+
+    async function pushSummarySnapshot(tctx){
+      if (!tctx || tctx.disabledSummary) return;
+      if (tctx.summarizing){ tctx.pendingSnapshot = true; return; }
+      const obs = Array.isArray(tctx.observations) ? tctx.observations.slice(-8) : [];
+      const pages = Array.isArray(tctx.pages) ? tctx.pages.slice(-3) : [];
+      const thinkRaw = (tctx.recentThink || '').trim();
+      const snippet = thinkRaw ? thinkRaw.slice(-1500) : '';
+      const hasThink = Boolean((tctx.totalThinkChars && tctx.totalThinkChars > 0) || snippet);
+      if (!hasThink && obs.length === 0 && pages.length === 0){ return; }
+      tctx.summarizing = true;
+      try{ tctx.lastSnapshotAt = performance.now(); }catch{}
+      try{
+        const r = await fetch('/api/reason/summarize', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({text: snippet, observations: obs, pages, snapshot: true, prior: Array.isArray(tctx.summaries)? tctx.summaries.slice(-3) : []})
+        });
+        if (!r.ok){ tctx.summaryFailures = (tctx.summaryFailures||0) + 1; if (tctx.summaryFailures >= 3){ tctx.disabledSummary = true; } return; }
+        let j={}; try{ j = await r.json(); }catch{}
+        const text = (j.summary || '').trim();
+        if (text && tctx.summaries?.slice(-1)[0] !== text){
+          const div = document.createElement('div'); div.className='summary-entry'; div.innerHTML = renderMarkdown(text);
+          tctx.log.appendChild(div);
+          tctx.steps += 1; tctx.counter.textContent = `steps: ${tctx.steps}`;
+          tctx.summaries = tctx.summaries || []; tctx.summaries.push(text);
+          const m = text.match(/\*\*([^*]+)\*\*/); if (m && m[1]) tctx.label.textContent = m[1].trim();
+          tctx.summaryFailures = 0;
+        }
+      }catch{ tctx.summaryFailures = (tctx.summaryFailures||0) + 1; if (tctx.summaryFailures >= 3){ tctx.disabledSummary = true; } }
+      finally{
+        tctx.summarizing = false;
+        if (tctx.pendingSnapshot){ tctx.pendingSnapshot = false; setTimeout(()=>{ try{ pushSummarySnapshot(tctx); }catch{} }, 200); }
+      }
+    }
+
+    function composeUserMessage(prompt){
+      const displayParts = [];
+      const historyParts = [];
+      const trimmedPrompt = prompt || '';
+      if (trimmedPrompt){ displayParts.push(trimmedPrompt); historyParts.push(trimmedPrompt); }
+      for (const att of attachments){
+        if (att.type === 'text' && att.text){
+          const block = `**File: ${att.name}**\n\`\`\`\n${att.text}\n\`\`\``;
+          displayParts.push(block);
+          historyParts.push(block);
+        } else {
+          const note = `(Attached file: ${att.name})`;
+          displayParts.push(note);
+          historyParts.push(note);
+        }
+      }
+      if (imageAttachment){
+        const imgDisplay = `![${imageAttachment.name}](${imageAttachment.preview})`;
+        const sizeKb = Math.max(1, Math.round(imageAttachment.file.size / 1024));
+        const imgHistory = `[Image uploaded: ${imageAttachment.name} • ${imageAttachment.file.type} • ${sizeKb}kb]`;
+        displayParts.push(imgDisplay);
+        historyParts.push(imgHistory);
+      }
+      return {
+        display: displayParts.join('\n\n'),
+        history: historyParts.join('\n\n')
+      };
+    }
+
+    // —— Send / Stream
+    async function sendMessage(){
+      if (streaming){ if (controller) controller.abort(); return; }
+
+      const prompt = promptEl.value.trim();
+      const hasImage = Boolean(imageAttachment);
+      if (!prompt && attachments.length===0 && !hasImage) return;
+      hideWelcome();
+
+      const userMessage = composeUserMessage(prompt);
+      // Upload attachments to backend for ingestion before sending
+      const hadFileAttachments = attachments.length > 0;
+      let ingestedNote = '';
+      if (attachments.length){
+        try{
+          uploadInProgress = true; renderAttachments();
+          const fd = new FormData();
+          for (const att of attachments){ if (att.file) fd.append('files', att.file, att.name || 'file'); }
+          const up = await fetch('/api/upload', { method:'POST', body: fd });
+          if (up.ok){
+            const uj = await up.json();
+            const files = Array.isArray(uj.files) ? uj.files.filter(f => f && f.ok) : [];
+            if (files.length){
+              const refs = files.map(f => `${f.title || f.name} (${f.doc_id})`).join(', ');
+              const filePaths = files.slice(0,5).map(f => ({title: (f.title||f.name||''), path: (f.path||'')}));
+              if (reasoningEnabled){
+                ingestedNote = `Attached files ingested: ${refs}. Use search_docs first for targeted facts (filters.source='file'). For quick orientation, you may call summarize_file with a specific {path}. If you require exact wording, call read_whole_file with that {path}. Files: ${JSON.stringify(filePaths)}`;
+              } else {
+                ingestedNote = `Attached files ingested: ${refs}. Relevant excerpts may be provided below for grounding. Files: ${JSON.stringify(filePaths)}`;
+              }
+            }
+          }
+        }catch{} finally { uploadInProgress = false; renderAttachments(); }
+      }
+      const displayContent = userMessage.display || (hasImage ? `[Image uploaded: ${imageAttachment.name}]` : '(submitted)');
+
+      history.push({role:'user', content: userMessage.history || displayContent});
+      addBubble('user', displayContent);
+
+      // reset composer
+      promptEl.value=''; attachments=[]; renderAttachments(); autosize();
+
+      // telemetry start
+      startAt = performance.now(); firstByteAt = 0; lastOutTokenEstimate = 0;
+      updateTelemetry(estimateTokens(userMessage.history || displayContent));
+
+      if (hasImage){
+        await sendVisionMessage(prompt || ''); return;
+      }
+
+      await ensureModel(reasoningEnabled ? (textModelTag || activeModelTag) : REASONING_OFF_MODEL);
+
+      const added = addBubble('assistant','');
+      msgCtx = { wrap: added.wrap, msg: added.msg, body: added.body, thinking: null };
+      msgCtx.msg.classList.add('streaming');
+
+      // thinking UI
+      msgCtx.thinking = createThinkingUI(msgCtx.msg);
+      try{
+        const tctx = msgCtx.thinking;
+        tctx.hadFiles = hadFileAttachments;
+        if (tctx && !tctx.snapshotInterval){
+          tctx.snapshotInterval = setInterval(()=>{
+            try{
+              if (!tctx.summarizing && (!tctx.buffer || tctx.buffer.length < 120)){
+                pushSummarySnapshot(tctx);
+              }
+            }catch{}
+          }, 1000);
+          setTimeout(()=>{ try{ if (!tctx.summarizing) pushSummarySnapshot(tctx); }catch{} }, 400);
+        }
+        // Doc auto-attach: if the model hasn't called search_docs soon, suggest sources
+        if (reasoningEnabled){
+          tctx.docAutoAttached = false;
+          tctx.sawSearchDocs = false;
+          tctx.docAutoAttachTimer = setTimeout(()=>{ try{ attemptDocAutoAttach(tctx); }catch{} }, 2500);
+        }
+      }catch{}
+
+      // lock UI
+      streaming = true; setButtonState('pause'); updateCtxHint();
+
+      const usingReasoning = Boolean(reasoningEnabled);
+      const settings = {
+        dynamic_ctx: dynamicCtxEl.checked,
+        max_ctx: parseInt(maxCtxEl.value || '40000', 10),
+        num_ctx: parseInt(numCtxEl.value || '8192', 10),
+        temperature: parseFloat(temperatureEl.value || '0.9'),
+        top_p: parseFloat(topPEl.value || '0.9'),
+        top_k: parseInt(topKEl.value || '100', 10),
+        num_predict: (numPredictEl.value || '').trim(),
+        seed: (seedEl.value || '').trim(),
+      };
+      let system = systemPromptEl.value || '';
+      function buildModelMessages(){
+        if (!reasoningEnabled) return history.slice();
+        const msgs = [];
+        let aidx = 0;
+        for (const m of history){
+          if (m.role === 'assistant'){
+            const sum = (assistantSummariesHistory[aidx] || '').trim();
+            aidx++;
+            if (sum){ msgs.push({role:'assistant', content: `Previous step summary:\n\n${sum}`}); }
+            else { msgs.push(m); }
+          } else { msgs.push(m); }
+        }
+        return msgs;
+      }
+      const modelMessages = buildModelMessages();
+      if (ingestedNote){ modelMessages.unshift({role:'system', content: ingestedNote}); }
+
+      // If tools are disabled (non-thinking run) but files were just ingested,
+      // proactively fetch top doc chunks and inject as grounding context.
+      if (!reasoningEnabled && ingestedNote){
+        try{
+          const q = (prompt || '').slice(0, 400);
+          if (q){
+            const body = { query: q, k: 5, rerank: (rerankDocResultsEl?.checked === true), filters: { source: 'file' } };
+            const r = await fetch('/api/search', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+            if (r.ok){
+              const j = await r.json();
+              const items = Array.isArray(j.results) ? j.results.slice(0,5) : [];
+              if (items.length){
+                const lines = [];
+                lines.push('Use these excerpts from the user\'s uploaded files as primary evidence:');
+                for (const it of items){
+                  const title = (it.title || it.doc_id || 'document');
+                  const meta = `${it.source || 'doc'}${it.uri ? ' • ' + it.uri : ''}`;
+                  const pv = String(it.preview||'').slice(0, 280);
+                  lines.push(`- ${title} • ${meta}\n${pv}`);
+                }
+                const docContextNote = lines.join('\n\n');
+                modelMessages.unshift({role:'system', content: docContextNote});
+              }
+            }
+          }
+        }catch{}
+      }
+      if (reasoningEnabled){
+        const hint = '\n\nContext note: Prior assistant messages are summarized steps; reconstruct details as needed without exposing hidden thinking.';
+        system = system ? (system + hint) : ('Context policy:' + hint);
+      }
+      const payload = {messages: modelMessages, settings, system, tools: usingReasoning};
+      if (!reasoningEnabled){
+        payload.developer = 'You are Gemma 3 responding directly. Provide concise answers and do not expose hidden thinking.';
+      }
+
+      controller = new AbortController();
+
+      try{
+        const resp = await fetch('/api/chat/stream', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify(payload),
+          signal: controller.signal
+        });
+
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+        let buffer = ''; let gotFirstDelta = false;
+
+        while(true){
+          const {value, done} = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, {stream:true});
+          const parts = buffer.split('\n\n'); buffer = parts.pop() || '';
+          for (const part of parts){
+            const line = part.trim();
+            if (!line.startsWith('data:')) continue;
+            const payload = line.slice(5).trim(); if (!payload) continue;
+            let event; try{ event = JSON.parse(payload); } catch { continue; }
+
+            if (event.type === 'delta'){
+              if (msgCtx?.thinking && msgCtx.thinking.mode !== 'reason' && msgCtx.thinking.mode !== 'web_search') msgCtx.thinking.setMode('reason');
+              if (!gotFirstDelta){ gotFirstDelta = true; firstByteAt = performance.now(); updateTelemetry(); }
+              const tctx = msgCtx.thinking;
+              const visible = consumeDelta(event.delta, tctx);
+
+              if (!tctx.finished){
+                if ((tctx.sawThinkOpen && tctx.sawThinkClose && /\S/.test(visible)) || (!tctx.sawThinkOpen && /\S/.test(visible))) {
+                  tctx.stop = performance.now(); finishThinkingUI(tctx);
+                  msgCtx.msg.classList.remove('streaming');
+                }
+              }
+              appendVisible(msgCtx, visible);
+            }
+            else if (event.type === 'tool_calls'){
+              const tctx = msgCtx.thinking;
+              if (tctx){
+                try{ if (tctx.summaryTimer){ clearTimeout(tctx.summaryTimer); tctx.summaryTimer=null; } }catch{}
+                try{ await pushSummary(tctx, true); }catch{}
+                for (const tc of (event.tool_calls || [])){
+                  const name = tc.function?.name || tc.name || 'tool';
+                  const id = tc.id;
+                  try{ if (name === 'search_docs'){ tctx.sawSearchDocs = true; if (tctx.docAutoAttachTimer) { clearTimeout(tctx.docAutoAttachTimer); tctx.docAutoAttachTimer = null; } } }catch{}
+                  try{
+                    let args = {};
+                    const raw = tc.function?.arguments;
+                    if (typeof raw === 'string'){ try{ args = JSON.parse(raw); }catch{} }
+                    else if (raw && typeof raw === 'object'){ args = raw; }
+                    const label = (function(){
+                      if (name === 'web_search') return `Searching: ${String(args.query||'').slice(0,48)}`;
+                      if (name === 'open_url'){ try{ const u = new URL(String(args.url||'')); return `Opening: ${u.hostname}`; }catch{ return 'Opening page…'; } }
+                      if (name === 'search_docs') return `Doc search: ${String(args.query||'').slice(0,48)}`;
+                      if (name === 'open_related_links') return 'Exploring related links…';
+                      if (name === 'summarize_file') return 'Summarizing files…';
+                      if (name === 'read_whole_file') return 'Reading file…';
+                      if (name === 'assistant') return 'Assistant working…';
+                      if (name === 'eval_expr') return `Evaluating: ${String(args.expr||'').slice(0,42)}`;
+                      if (name === 'execute') return 'Running code…';
+                      if (name === 'read_file') return `Reading: ${String(args.path||'').slice(0,42)}`;
+                      if (name === 'write_file') return `Writing: ${String(args.path||'').slice(0,42)}`;
+                      if (name === 'terminal_open') return 'Starting terminal…';
+                      if (name === 'terminal_run') return `Terminal: ${String(args.cmd||'').slice(0,36)}`;
+                      if (name === 'terminal_terminate') return 'Closing terminal…';
+                      if (name === 'notes_write') return `Notes: write ${String(args.key||'')}`;
+                      if (name === 'notes_read') return `Notes: read ${String(args.key||'')}`;
+                      if (name === 'notes_list') return 'Notes: list';
+                      if (name === 'user_prefs_write') return `Prefs: write ${String(args.key||'')}`;
+                      if (name === 'user_prefs_read') return `Prefs: read ${String(args.key||'')}`;
+                      if (name === 'user_prefs_list') return 'Prefs: list';
+                      return (TOOL_LABELS[name] || 'Working…');
+                    })();
+                    tctx.label.textContent = label;
+                  }catch{}
+                  tctx.setMode(name);
+                  const section = document.createElement('div');
+                  section.className = 'tool-entry pending';
+                  const title = document.createElement('strong'); title.textContent = name;
+                  section.appendChild(title);
+                  tctx.log.appendChild(section);
+                  if (id) tctx.placeholders[id] = section;
+                  const nextPre = document.createElement('pre'); tctx.log.appendChild(nextPre); tctx.pre = nextPre;
+                  if (name === 'web_search'){
+                    if (tctx.searchTimer) clearTimeout(tctx.searchTimer);
+                    tctx.searchTimer = setTimeout(()=>{ if (tctx.mode === 'web_search') tctx.setMode('reason'); }, 2000);
+                  }
+                }
+              }
+            }
+            else if (event.type === 'tool_result'){
+              const tctx = msgCtx.thinking;
+              if (tctx) renderToolResult(tctx, event);
+            }
+            else if (event.type === 'error'){
+              appendVisible(msgCtx, `\n\n**[error]** ${event.message}`);
+            }
+            else if (event.type === 'done'){
+              const tctx = msgCtx.thinking;
+              try{ if (tctx?.snapshotInterval) clearInterval(tctx.snapshotInterval); }catch{}
+              try{ if (tctx?.docAutoAttachTimer) { clearTimeout(tctx.docAutoAttachTimer); tctx.docAutoAttachTimer = null; } }catch{}
+              if (tctx && !tctx.finished){ tctx.stop = performance.now(); finishThinkingUI(tctx); }
+              msgCtx.msg.classList.remove('streaming');
+              let raw = msgCtx.body.getAttribute('data-raw') || '';
+              if (!raw.trim()){
+                let fallbackAnswer = await finalizeFromReasoning(tctx);
+                if (!fallbackAnswer){
+                  const fallbackSummary = Array.isArray(tctx?.summaries) ? (tctx.summaries.slice(-1)[0] || '') : '';
+                  if (fallbackSummary.trim()){
+                    const headingMatch = fallbackSummary.match(/^\*\*([^*]+)\*\*/);
+                    const heading = headingMatch && headingMatch[1] ? headingMatch[1].trim() : '';
+                    const remainder = headingMatch ? fallbackSummary.slice(headingMatch[0].length).trim() : fallbackSummary.trim();
+                    fallbackAnswer = heading && remainder ? `**${heading}**\n\n${remainder}` : (remainder || fallbackSummary.trim());
+                  }
+                }
+                raw = (fallbackAnswer && fallbackAnswer.trim()) ? fallbackAnswer.trim() : '_No answer produced._';
+                msgCtx.body.setAttribute('data-raw', raw);
+                msgCtx.body.innerHTML = renderMarkdown(raw);
+              }
+              history.push({role:'assistant', content: raw});
+              try {
+                const joined = (tctx?.summaries || []).join('\n');
+                (window.assistantSummariesHistory || (window.assistantSummariesHistory = []));
+                assistantSummariesHistory.push(joined);
+              } catch { assistantSummariesHistory.push(''); }
+              updateCtxHint();
+              updateTelemetry();
+
+              // If we auto-attached or searched docs, surface them under the reply
+              try{
+                const allowDocCitations = Boolean(tctx?.hadFiles || tctx?.sawSearchDocs || tctx?.assistantSource);
+                if (allowDocCitations && tctx?.autoDocsResults && Array.isArray(tctx.autoDocsResults.results) && tctx.autoDocsResults.results.length){
+                  renderInlineSources(msgCtx.msg, tctx.autoDocsResults.results);
+                  try{
+                    const tops = tctx.autoDocsResults.results.slice(0,3).map(it=>`${it.host||it.source||''} — ${String(it.title||it.doc_id||'').slice(0,72)}`);
+                    if (tops.length){ appendVisible(msgCtx, `\n\nFrom your docs: ${tops.join('; ')}`); }
+                  }catch{}
+                }
+                else if (allowDocCitations && tctx?.lastDocsResults && Array.isArray(tctx.lastDocsResults.results) && tctx.lastDocsResults.results.length){
+                  renderInlineSources(msgCtx.msg, tctx.lastDocsResults.results);
+                  try{
+                    const tops = tctx.lastDocsResults.results.slice(0,3).map(it=>`${it.host||it.source||''} — ${String(it.title||it.doc_id||'').slice(0,72)}`);
+                    if (tops.length){ appendVisible(msgCtx, `\n\nFrom your docs: ${tops.join('; ')}`); }
+                  }catch{}
+                }
+                else if (allowDocCitations && tctx?.assistantSource){
+                  try{ appendVisible(msgCtx, `\n\nFrom your docs: ${String(tctx.assistantSource)}`); }catch{}
+                }
+              }catch{}
+
+              // Inline doc sources after answer
+              try{
+                if (inlineDocHitsEl?.checked){
+                  const q = getLastUserText().slice(0, 400);
+                  if (q){
+                    const body = { query: q, k: 5, rerank: (rerankDocResultsEl?.checked === true) };
+                    fetch('/api/search', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) })
+                      .then(r => r.ok ? r.json() : null)
+                      .then(j => { if (j && Array.isArray(j.results) && j.results.length){ renderInlineSources(msgCtx.msg, j.results); } })
+                      .catch(()=>{});
+                  }
+                }
+              }catch{}
+            }
+          }
+        }
+      } catch(err){
+        if (msgCtx) appendVisible(msgCtx, `\n\n**[error]** ${err}`);
+      } finally {
+        streaming = false; setButtonState('send');
+        if (msgCtx?.thinking && !firstByteAt){ msgCtx.thinking.stop = performance.now(); finishThinkingUI(msgCtx.thinking); }
+        try{ if (msgCtx?.thinking?.docAutoAttachTimer){ clearTimeout(msgCtx.thinking.docAutoAttachTimer); msgCtx.thinking.docAutoAttachTimer = null; } }catch{}
+        msgCtx = null;
+      }
+    }
+
+    async function sendVisionMessage(promptText){
+      const added = addBubble('assistant','');
+      const { msg, body } = added;
+      msg.classList.add('streaming');
+      const waiting = 'Analyzing image…';
+      body.setAttribute('data-raw', waiting);
+      body.innerHTML = renderMarkdown(waiting);
+
+      streaming = true; setButtonState('pause'); updateCtxHint();
+      controller = new AbortController();
+
+      try {
+        const form = new FormData();
+        form.append('prompt', promptText);
+        form.append('model', REASONING_OFF_MODEL);
+        form.append('reasoning', reasoningEnabled ? 'on' : 'off');
+        form.append('history', JSON.stringify(history));
+        if (imageAttachment?.file){ form.append('image', imageAttachment.file, imageAttachment.file.name); }
+
+        const resp = await fetch('/api/gemma3', { method:'POST', body: form, signal: controller.signal });
+        firstByteAt = performance.now();
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        let data = {}; try { data = await resp.json(); } catch {}
+        const answer = data.response || data.reply || data.message || data.output || '';
+        body.setAttribute('data-raw', answer);
+        body.innerHTML = renderMarkdown(answer || '(no response)');
+        lastOutTokenEstimate = estimateTokens(answer);
+        history.push({role:'assistant', content: answer});
+        updateTelemetry();
+      } catch (err) {
+        const message = err?.message ? err.message : String(err);
+        const raw = `**[error]** ${message}`;
+        body.setAttribute('data-raw', raw);
+        body.innerHTML = renderMarkdown(raw);
+        lastOutTokenEstimate = estimateTokens(raw);
+      } finally {
+        streaming = false; setButtonState('send'); controller = null; msg.classList.remove('streaming');
+        revokeImagePreview(); imageAttachment = null; renderAttachments();
+        updateCtxHint(); updateTelemetry();
+      }
+    }
+
+    // —— Nav controls
+    sendBtn.addEventListener('click', sendMessage);
+    promptEl.addEventListener('keydown', (e) => {
+      if ((e.key === 'Enter' && !e.shiftKey) || (e.key === 'Enter' && (e.metaKey || e.ctrlKey))) { e.preventDefault(); sendMessage(); }
+    });
+    newChatBtn.addEventListener('click', () => { archiveCurrentChat(); history=[]; listEl.innerHTML=''; updateCtxHint(); updateTelemetry(0); showWelcome(); renderSessions(); });
+    if (exportChatBtn) exportChatBtn.addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify({history}, null, 2)], {type:'application/json'});
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'chat_export.json'; a.click(); URL.revokeObjectURL(a.href);
+    });
+    document.getElementById('clearChat').addEventListener('click', () => { history=[]; listEl.innerHTML=''; updateTelemetry(0); showWelcome(); });
+
+    // —— Boot
+    (async () => {
+      await checkHealth();
+      // Default to pinned on wide screens
+      if (window.innerWidth >= 1100) document.body.classList.add('has-sidebar');
+      updateCtxHint(); setButtonState('send'); updateTelemetry(0); initUI(); initWelcome(); renderSessions();
+    })();
+  </script>
+</body>
+</html>
+    // Doc search modal elements
+    const docSearchBackdrop = document.getElementById('docSearchBackdrop');
+    const docSearchModal = document.getElementById('docSearchModal');
+    const docSearchClose = document.getElementById('docSearchClose');
+    const docSearchBoxModal = document.getElementById('docSearchBoxModal');
+    const docSearchBtnModal = document.getElementById('docSearchBtnModal');
+    const docSearchList = document.getElementById('docSearchList');
